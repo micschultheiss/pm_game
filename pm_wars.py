@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PM Wars - Vibe Coding Edition
+Code Wars - Vibe Coding Edition
 Buy LLM tokens (in millions) from AI providers, craft SaaS products,
 and sell them to enterprise and government clients before your runway burns out.
 """
@@ -728,7 +728,7 @@ def header(state):
             if c["name"] == state["location"]:
                 loc_label += f" ({c['type']})"
                 break
-    print(f"  VIBE WARS  |  Day {state['day']}/{MAX_DAYS}  |  {loc_label}")
+    print(f"  CODE WARS  |  Day {state['day']}/{MAX_DAYS}  |  {loc_label}")
     rule("═")
     nw = net_worth(state)
     nw_sign = "+" if nw >= 0 else ""
@@ -1117,7 +1117,7 @@ def game_loop(state):
 def main():
     clear()
     rule("═")
-    print("  VIBE WARS — Where AI Meets Enterprise")
+    print("  CODE WARS — Where AI Meets Enterprise")
     rule("═")
     print("""
   You're a vibe-coding Senior PM hustling AI products.

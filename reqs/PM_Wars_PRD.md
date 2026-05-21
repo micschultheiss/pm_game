@@ -1,8 +1,8 @@
-# PM Wars
+# Code Wars
 
 ### TL;DR
 
-PM Wars is a simple game that reimagines the Drug Wars economic loop for AI product management. Players have 60 in-game days to buy LLM tokens, craft AI SaaS products, sell them to enterprise and government clients, manage compounding debt, and avoid bankruptcy. The target audience is technically curious product managers, AI builders, and startup operators game fans who enjoy strategic resource optimization with a meme-forward AI industry theme.
+Code Wars is a simple game that reimagines the Drug Wars economic loop for AI product management. Players have 60 in-game days to buy LLM tokens, craft AI SaaS products, sell them to enterprise and government clients, manage compounding debt, and avoid bankruptcy. The target audience is technically curious product managers, AI builders, and startup operators game fans who enjoy strategic resource optimization with a meme-forward AI industry theme.
 
 ---
 
@@ -201,7 +201,7 @@ You are a vibe-coding Senior Product Manager with a dangerous amount of confiden
 
 Each day, you decide where to spend scarce cash and time. You can buy cheap tokens and ship fast, but low-quality ingredients may fail government quality floors. You can overpay for premium tokens and chase big contracts, but debt compounds while builds decay and client priorities shift. A Compliance Dashboard might be worth a fortune after an EU AI Act shock, or it might sit on the shelf long enough to become yesterday's model wrapper.
 
-PM Wars turns AI hype into a compact strategy loop: source tokens, craft products, refactor when quality is close, sell before demand rotates away, and decide whether to pay down debt or take one more risky swing. At the end of 60 days, the market renders judgment. Maybe you become a Unicorn. Maybe you scrape into Ramen Profitable. Or maybe the vibes were not coding.
+Code Wars turns AI hype into a compact strategy loop: source tokens, craft products, refactor when quality is close, sell before demand rotates away, and decide whether to pay down debt or take one more risky swing. At the end of 60 days, the market renders judgment. Maybe you become a Unicorn. Maybe you scrape into Ramen Profitable. Or maybe the vibes were not coding.
 
 ---
 
