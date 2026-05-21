@@ -12,8 +12,8 @@ import os
 # CONSTANTS
 # ─────────────────────────────────────────────
 
-MAX_DAYS              = 60
-STARTING_CASH         = 50_000
+MAX_DAYS              = 30
+STARTING_CASH         = 35_000
 STARTING_DEBT         = 300_000
 DEBT_INTEREST         = 0.02    # 2% per day on outstanding debt
 TRAVEL_COST           = 30_000  # biz dev / sales travel — pitch decks aren't free
@@ -79,37 +79,37 @@ PRODUCTS = {
     # base_value = enterprise SaaS contract size, in dollars.
     "AI Customer Support": {
         "recipe":     {"Code": 50, "Voice": 30},
-        "craft_days": 2,
+        "craft_days": 3,
         "base_value": 70_000,
     },
     "Contract Analyzer": {
         "recipe":     {"Reasoning": 80, "Code": 40},
-        "craft_days": 3,
+        "craft_days": 4,
         "base_value": 110_000,
     },
     "Brand Asset Generator": {
         "recipe":     {"Image": 100, "Code": 20},
-        "craft_days": 2,
+        "craft_days": 3,
         "base_value": 60_000,
     },
     "Compliance Dashboard": {
         "recipe":     {"Reasoning": 120, "Code": 60, "Image": 20},
-        "craft_days": 4,
+        "craft_days": 5,
         "base_value": 240_000,
     },
     "Training Video Platform": {
         "recipe":     {"Video": 100, "Voice": 60, "Code": 30},
-        "craft_days": 5,
+        "craft_days": 6,
         "base_value": 160_000,
     },
     "AI Security Scanner": {
         "recipe":     {"Reasoning": 80, "Code": 100},
-        "craft_days": 3,
+        "craft_days": 4,
         "base_value": 130_000,
     },
     "Marketing Copilot": {
         "recipe":     {"Code": 60, "Image": 60, "Reasoning": 30},
-        "craft_days": 3,
+        "craft_days": 4,
         "base_value": 90_000,
     },
 }
@@ -1129,16 +1129,16 @@ def main():
   Buy cheap tokens, craft high-quality products,
   and sell before your debt eats you alive.
 
-  Starting cash: $50K. Starting debt: $300K (compounding 2%/day).
+  Starting cash: $35K. Starting debt: $300K (compounding 2%/day).
 
   - Travel/sales trip costs $30K + 1 day (flights, decks, dinners…)
-  - Crafting takes 2-5 days (50-200M tokens per build)
+  - Crafting takes 3-6 days (50-200M tokens per build)
   - Token storage capped at 500M
   - Clients rotate every 3-7 days
   - Token quality (model maturity) gates client sales
   - Cap on quality bonus — over-spec doesn't pay extra
 
-  You have 60 days to clear the debt and build a real business.
+  You have 30 days to clear the debt and build a real business.
 """)
     rule()
     input("  Press ENTER to start...")
