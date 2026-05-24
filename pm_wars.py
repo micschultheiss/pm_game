@@ -739,6 +739,17 @@ def header(state):
         print(f"  🔨 Crafting: {c['name']} ({c['days_left']}d left, {c['quality']:.0%} quality)")
     rule()
 
+def status_bar(state):
+    """Compact one-liner re-stating cash/debt/day/storage right above the action prompt."""
+    crafting = ""
+    if state["crafting"]:
+        c = state["crafting"]
+        crafting = f"   🔨 {c['name']} ({c['days_left']}d, {c['quality']:.0%})"
+    rule()
+    print(f"  💰 ${state['cash']:,}   💳 ${state['debt']:,}   "
+          f"📅 Day {state['day']}/{MAX_DAYS}   📦 {token_total(state)}M/{MAX_TOKENS}M{crafting}")
+    rule()
+
 def show_event(state):
     if state["last_event"]:
         print(f"\n  ⚡ {state['last_event']}\n")
@@ -800,13 +811,14 @@ def show_products(state):
         print(f"    {i}. {p['name']}  (quality: {p['quality']:.0%})")
 
 def show_craftable(state):
-    print("\n  Craftable products:")
-    print(f"  {'#':<4} {'Product':<26} {'Days':>4}   {'Recipe (M tokens)':>32}   {'Build':>5}")
-    print(f"  {'─'*4} {'─'*26} {'─'*4}   {'─'*32}   {'─'*5}")
+    print("\n  Product catalog — costs to craft & base contract value:")
+    print(f"  {'#':<3}{'Product':<24}{'Build':>6}  {'Recipe (M tokens)':<40}{'Base $':>8}  Ready")
+    print(f"  {'─'*3}{'─'*24}{'─'*6}  {'─'*40}{'─'*8}  {'─'*5}")
     for i, (name, prod) in enumerate(PRODUCTS.items(), 1):
         recipe_str = " + ".join(f"{n}M {t}" for t, n in prod["recipe"].items())
-        buildable = "Yes" if can_craft(state, name) else "No"
-        print(f"  {i:<4} {name:<26} {prod['craft_days']:>4}   {recipe_str:>32}   {buildable:>5}")
+        ready = "✓" if can_craft(state, name) else "·"
+        base_str = f"${prod['base_value']//1000}K"
+        print(f"  {i:<3}{name:<24}{prod['craft_days']:>5}d  {recipe_str:<40}{base_str:>8}    {ready}")
 
 def show_all_clients(state):
     print("\n  Active client contracts:")
@@ -838,6 +850,7 @@ def menu_buy(state):
         return
     show_provider(state)
     print()
+    status_bar(state)
     choice = prompt_int(f"Token # (1-{len(TOKEN_TYPES)}, or 0 to cancel)")
     if choice is None or choice == 0:
         return
@@ -874,6 +887,7 @@ def menu_sell(state):
     show_client_offers(state)
     show_products(state)
     print()
+    status_bar(state)
     pidx = prompt_int(f"Product # to sell (1-{len(state['products'])}, or 0 to cancel)")
     if pidx is None or pidx == 0:
         return
@@ -1081,9 +1095,10 @@ def game_loop(state):
 
         show_tokens(state)
         show_products(state)
+        show_craftable(state)
         show_all_clients(state)
-        print()
         show_message(state)
+        status_bar(state)
         actions = "[B]uy" if state["location_type"] == "provider" else "[S]ell"
         print(f"  {actions}  [C]raft  [R]efactor  [T]ravel  [W]ait  [P]ay  [Q]uit")
         rule()
