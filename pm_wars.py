@@ -28,13 +28,6 @@ CLIENT_ADD_CHANCE     = 0.04    # daily chance per client to add a new want
 CRAFT_DECAY_BASE      = 0.05    # base daily chance during craft
 PRODUCT_DECAY_BASE    = 0.03    # base daily chance for sitting products
 DECAY_SIZE_FACTOR     = 0.0006  # added to chance per M tokens of recipe size
-REFACTOR_MIN_RATIO    = 0.70    # min token cost ratio vs original recipe size
-REFACTOR_MAX_RATIO    = 1.20    # max token cost ratio (rolled per refactor)
-REFACTOR_QUALITY_LIFT = 0.70    # closes 70% of the gap to refactor token quality
-REFACTOR_SMALL_LIFT   = 0.04    # flat lift for any refactor (cleanup work)
-REFACTOR_SOFT_CAP     = 0.20    # max above refactor_q — cheap tokens have limited reach
-REFACTOR_DAYS_RATIO   = 0.60    # refactor takes this fraction of original craft_days
-
 TOKEN_TYPES = ["Code", "Reasoning", "Image", "Voice", "Video"]
 # 2-letter codes used in compact recipe displays (e.g. "120Re · 60Co · 20Im").
 TOKEN_ABBREV = {"Code": "Co", "Reasoning": "Re", "Image": "Im", "Voice": "Vo", "Video": "Vi"}
@@ -587,73 +580,6 @@ def do_craft(state, product_name):
     }
     return f"Started crafting {product_name}! Ready in {prod['craft_days']} days. (quality: {quality:.0%})"
 
-def _refactor_range(product_name):
-    """Return (min_code, max_code) tokens used by a refactor (Code only, randomized)."""
-    total = sum(PRODUCTS[product_name]["recipe"].values())
-    return (int(round(total * REFACTOR_MIN_RATIO)),
-            int(round(total * REFACTOR_MAX_RATIO)))
-
-def _roll_refactor_cost(product_name):
-    """Roll the actual Code-only refactor cost for this attempt."""
-    total = sum(PRODUCTS[product_name]["recipe"].values())
-    qty = int(round(total * random.uniform(REFACTOR_MIN_RATIO, REFACTOR_MAX_RATIO)))
-    return {"Code": qty}
-
-def do_refactor(state, product_idx):
-    if state["crafting"]:
-        return f"Already crafting {state['crafting']['name']} ({state['crafting']['days_left']}d left)."
-    if product_idx < 0 or product_idx >= len(state["products"]):
-        return "Invalid product."
-    product = state["products"][product_idx]
-    needed = _roll_refactor_cost(product["name"])
-
-    missing = []
-    for t, n in needed.items():
-        held = state["tokens"].get(t, {"qty": 0})["qty"]
-        if held < n:
-            missing.append(f"{t}: need {n}M, have {held}M")
-    if missing:
-        return "Refactor rolled cost " + ", ".join(f"{n}M {t}" for t, n in needed.items()) + " — " + ", ".join(missing)
-
-    # Token quality of what we'd spend (Code-only)
-    total_q_sum = 0.0
-    total_qty = 0
-    for t, n in needed.items():
-        avg_q = token_avg_quality(state, t)
-        total_q_sum += avg_q * n
-        total_qty += n
-    refactor_q = total_q_sum / total_qty if total_qty else 0.0
-
-    current_q = product["quality"]
-    gap_lift = max(0, refactor_q - current_q) * REFACTOR_QUALITY_LIFT
-    target_q = current_q + REFACTOR_SMALL_LIFT + gap_lift
-    # Soft cap: cheap tokens can polish but can't push quality far past their own ceiling
-    target_q = min(target_q, refactor_q + REFACTOR_SOFT_CAP)
-    target_q = max(target_q, current_q)         # never decrease
-    target_q = min(0.99, target_q)
-    if target_q - current_q < 0.01:
-        return (f"Refactor wouldn't help — {product['name']} at {current_q:.0%}, "
-                f"refactor pool only {refactor_q:.0%} (capped at {refactor_q + REFACTOR_SOFT_CAP:.0%}). "
-                f"Buy higher-quality tokens.")
-
-    # Consume tokens
-    for t, n in needed.items():
-        avg_q = token_avg_quality(state, t)
-        state["tokens"][t]["qty"] -= n
-        state["tokens"][t]["quality_sum"] -= avg_q * n
-        if state["tokens"][t]["qty"] <= 0:
-            del state["tokens"][t]
-
-    refactor_days = max(1, int(PRODUCTS[product["name"]]["craft_days"] * REFACTOR_DAYS_RATIO))
-    state["crafting"] = {
-        "name":      product["name"],
-        "quality":   target_q,
-        "days_left": refactor_days,
-    }
-    state["products"].pop(product_idx)
-    return (f"🔧 Refactoring {product['name']}: {current_q:.0%} → ~{target_q:.0%} "
-            f"in {refactor_days} day(s).")
-
 def do_sell_product(state, product_idx, client_idx):
     if client_idx < 0 or client_idx >= len(state["active_clients"]):
         return "Invalid client."
@@ -995,34 +921,6 @@ def menu_craft(state):
     product_name = list(PRODUCTS.keys())[choice - 1]
     state["message"] = do_craft(state, product_name)
 
-def menu_refactor(state):
-    if state["crafting"]:
-        state["message"] = f"Already crafting {state['crafting']['name']} ({state['crafting']['days_left']}d left)."
-        return
-    if not state["products"]:
-        state["message"] = "No finished products to refactor. Craft something first."
-        return
-    show_tokens(state)
-    code_held = state["tokens"].get("Code", {"qty": 0})["qty"]
-    print(f"\n  Refactor a finished product (Code-only, random {REFACTOR_MIN_RATIO:.0%}-{REFACTOR_MAX_RATIO:.0%} of original recipe):")
-    print(f"  {'#':<4} {'Product':<26} {'Cur Q':>6}   {'Cost range':<18} {'Worst-case OK?':>16}")
-    print(f"  {'─'*4} {'─'*26} {'─'*6}   {'─'*18} {'─'*16}")
-    for i, p in enumerate(state["products"], 1):
-        lo, hi = _refactor_range(p["name"])
-        cost_str = f"{lo}M-{hi}M Code"
-        ok = code_held >= hi
-        print(f"  {i:<4} {p['name']:<26} {p['quality']:>5.0%}   {cost_str:<18} {('Yes' if ok else f'risky ({code_held}M held)'):>16}")
-    print(f"\n  Code Quality lifts: +{REFACTOR_SMALL_LIFT:.0%} flat, plus {REFACTOR_QUALITY_LIFT:.0%} of any positive gap.")
-    print(f"  Cheap Code tokens give a small lift; capped at Code quality + {REFACTOR_SOFT_CAP:.0%}.")
-    print(f"  Refactor takes ~{REFACTOR_DAYS_RATIO:.0%} of original craft days.\n")
-    choice = prompt_int(f"Product # to refactor (1-{len(state['products'])}, or 0 to cancel)")
-    if not choice or choice == 0:
-        return
-    if not (1 <= choice <= len(state["products"])):
-        state["message"] = "Invalid choice."
-        return
-    state["message"] = do_refactor(state, choice - 1)
-
 def menu_travel(state):
     print("\n  Destinations:\n")
     destinations = []
@@ -1125,12 +1023,6 @@ def has_any_option(state):
     for prod_name in PRODUCTS:
         if can_craft(state, prod_name):
             return True
-    # Have a finished product + Code tokens for at least the minimum refactor cost
-    for prod in state["products"]:
-        min_code, _ = _refactor_range(prod["name"])
-        held_code = state["tokens"].get("Code", {"qty": 0})["qty"]
-        if held_code >= min_code:
-            return True
     # At a client where a finished product matches min quality
     if state["location_type"] == "client":
         for c in state["active_clients"]:
@@ -1151,7 +1043,7 @@ def bankruptcy_screen(state):
     print(f"  Debt: ${state['debt']:,}")
     print(f"  Tokens: {token_total(state)}M, Products: {len(state['products'])}")
     print()
-    print("  No way to buy, craft, refactor, sell, or travel.")
+    print("  No way to buy, craft, sell, or travel.")
     print("  The runway is gone. Game over.")
     print()
     rule("═")
@@ -1187,7 +1079,6 @@ def game_loop(state):
         menu = "  ".join([
             primary,
             _key("C", "raft"),
-            _key("R", "efactor"),
             _key("T", "ravel"),
             _key("W", "ait"),
             _key("P", "ay"),
@@ -1206,8 +1097,6 @@ def game_loop(state):
             menu_sell(state)
         elif cmd == "c":
             menu_craft(state)
-        elif cmd == "r":
-            menu_refactor(state)
         elif cmd == "t":
             menu_travel(state)
         elif cmd == "w":
