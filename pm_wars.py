@@ -36,7 +36,6 @@ REFACTOR_SOFT_CAP     = 0.20    # max above refactor_q — cheap tokens have lim
 REFACTOR_DAYS_RATIO   = 0.60    # refactor takes this fraction of original craft_days
 
 TOKEN_TYPES = ["Code", "Reasoning", "Image", "Voice", "Video"]
-TOKEN_ABBREV = {"Code": "Co", "Reasoning": "Re", "Image": "Im", "Voice": "Vo", "Video": "Vi"}
 
 # ─────────────────────────────────────────────
 # PROVIDERS — always on the map
@@ -778,7 +777,7 @@ def show_location_panel(state):
     """One-line prices at the current provider, or current wants if at a client."""
     if state["location_type"] == "provider":
         prices = state["provider_prices"][state["location"]]
-        parts = [f"{t} ({TOKEN_ABBREV[t]}) ${prices[t]}" for t in TOKEN_TYPES]
+        parts = [f"{t} ${prices[t]}" for t in TOKEN_TYPES]
         print(f"  Prices ($/M):  {' · '.join(parts)}")
     else:
         client = next((c for c in state["active_clients"]
