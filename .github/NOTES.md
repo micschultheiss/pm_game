@@ -23,3 +23,4 @@ Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.m
 ## Changelog
 
 - **2026-05-25** — Renamed the game from "Code Wars" / "PM Wars" / "Vibe Wars" to **Hallucination Inc.** in all UI copy and docs. Then renamed `pm_wars.py` → `hallucination_inc.py` and `docs/PM_Wars_PRD.md` → `docs/Hallucination_Inc_PRD.md`.
+- **2026-05-25** — Surfaced in-progress build on the inventory dashboard's `Products:` line (alongside completed products) so remaining build days are visible without scanning the header.

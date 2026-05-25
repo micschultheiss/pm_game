@@ -766,8 +766,11 @@ def show_inventory_inline(state):
         print(f"  Tokens:        {' · '.join(parts) if parts else '(none)'}")
     else:
         print(f"  Tokens:        (none)")
-    if state["products"]:
-        parts = [f"{p['name']} ({p['quality']:.0%})" for p in state["products"]]
+    parts = [f"{p['name']} ({p['quality']:.0%})" for p in state["products"]]
+    if state["crafting"]:
+        c = state["crafting"]
+        parts.append(f"🔨 {c['name']} ({c['days_left']}d left, {c['quality']:.0%})")
+    if parts:
         print(f"  Products:      {' · '.join(parts)}")
     else:
         print(f"  Products:      (none)")
