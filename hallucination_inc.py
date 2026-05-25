@@ -540,21 +540,21 @@ def advance_days(state, days):
 
 def do_buy_tokens(state, token_type, qty):
     if qty < 1:
-        return "Quantity must be at least 1M."
+        return False, "Quantity must be at least 1M."
     prov = state["location"]
     price = state["provider_prices"][prov][token_type]
     cost = price * qty
     quality = PROVIDERS[prov]["quality"]
     if cost > state["cash"]:
-        return f"Not enough cash (need ${cost:,}, have ${state['cash']:,})."
+        return False, f"Not enough cash (need ${cost:,}, have ${state['cash']:,})."
     if qty > token_free(state):
-        return f"Not enough storage (need {qty}M, have {token_free(state)}M free)."
+        return False, f"Not enough storage (need {qty}M, have {token_free(state)}M free)."
     state["cash"] -= cost
     if token_type not in state["tokens"]:
         state["tokens"][token_type] = {"qty": 0, "quality_sum": 0.0}
     state["tokens"][token_type]["qty"] += qty
     state["tokens"][token_type]["quality_sum"] += qty * quality
-    return f"Bought {qty}M {token_type} tokens from {prov} for ${cost:,}. (quality: {quality:.0%})"
+    return True, f"Bought {qty}M {token_type} tokens from {prov} for ${cost:,}. (quality: {quality:.0%})"
 
 def can_craft(state, product_name):
     recipe = PRODUCTS[product_name]["recipe"]
@@ -566,7 +566,7 @@ def can_craft(state, product_name):
 
 def do_craft(state, product_name):
     if state["crafting"]:
-        return f"Already crafting {state['crafting']['name']} ({state['crafting']['days_left']}d left)."
+        return False, f"Already crafting {state['crafting']['name']} ({state['crafting']['days_left']}d left)."
     prod = PRODUCTS[product_name]
     recipe = prod["recipe"]
     if not can_craft(state, product_name):
@@ -575,7 +575,7 @@ def do_craft(state, product_name):
             held = state["tokens"].get(t, {"qty": 0})["qty"]
             if held < need:
                 missing.append(f"{t}: need {need}M, have {held}M")
-        return "Missing tokens — " + ", ".join(missing)
+        return False, "Missing tokens — " + ", ".join(missing)
     total_tokens = sum(recipe.values())
     quality_sum = 0.0
     for token_type, needed in recipe.items():
@@ -591,33 +591,33 @@ def do_craft(state, product_name):
         "quality":   quality,
         "days_left": prod["craft_days"],
     }
-    return f"Started crafting {product_name}! Ready in {prod['craft_days']} days. (quality: {quality:.0%})"
+    return True, f"Started crafting {product_name}! Ready in {prod['craft_days']} days. (quality: {quality:.0%})"
 
 def do_sell_product(state, product_idx, client_idx):
     if client_idx < 0 or client_idx >= len(state["active_clients"]):
-        return "Invalid client."
+        return False, "Invalid client."
     if product_idx < 0 or product_idx >= len(state["products"]):
-        return "Invalid product."
+        return False, "Invalid product."
     client = state["active_clients"][client_idx]
     product = state["products"][product_idx]
     if product["name"] not in client["current_wants"]:
-        return f"{client['name']} doesn't want {product['name']} right now."
+        return False, f"{client['name']} doesn't want {product['name']} right now."
     contract = client["current_wants"][product["name"]]
     if product["quality"] < contract["min_quality"]:
-        return (f"❌ Quality too low ({product['quality']:.0%}). "
-                f"{client['name']} needs {contract['min_quality']:.0%}+.")
+        return False, (f"❌ Quality too low ({product['quality']:.0%}). "
+                       f"{client['name']} needs {contract['min_quality']:.0%}+.")
     quality_bonus = product["quality"] / contract["min_quality"]
     revenue = int(contract["budget"] * min(quality_bonus, QUALITY_BONUS_CAP))
     state["cash"] += revenue
     state["products"].pop(product_idx)
     del client["current_wants"][product["name"]]
-    return f"💰 SOLD {product['name']} to {client['name']} for ${revenue:,}! Cash: ${state['cash']:,}"
+    return True, f"💰 SOLD {product['name']} to {client['name']} for ${revenue:,}! Cash: ${state['cash']:,}"
 
 def do_travel(state, dest_name, dest_type):
     if dest_name == state["location"]:
-        return "You're already there."
+        return False, "You're already there."
     if state["cash"] < TRAVEL_COST:
-        return f"Need ${TRAVEL_COST:,} travel budget (have ${state['cash']:,})."
+        return False, f"Need ${TRAVEL_COST:,} travel budget (have ${state['cash']:,})."
     state["cash"] -= TRAVEL_COST
     state["location"] = dest_name
     state["location_type"] = dest_type
@@ -627,8 +627,7 @@ def do_travel(state, dest_name, dest_type):
         for token, base in prov["base_prices"].items():
             noise = random.uniform(0.7, 1.4)
             state["provider_prices"][dest_name][token] = max(5, int(base * noise))
-    advance_days(state, 1)
-    return None
+    return True, f"Travelled to {dest_name}."
 
 def borrow_limit(state):
     total_base = sum(PRODUCTS[p["name"]]["base_value"] for p in state["products"])
@@ -639,31 +638,31 @@ def borrow_available(state):
 
 def do_borrow(state, amount):
     if amount <= 0:
-        return "Enter a positive amount."
+        return False, "Enter a positive amount."
     if not state["products"]:
-        return "You need at least one finished product as collateral."
+        return False, "You need at least one finished product as collateral."
     avail = borrow_available(state)
     if avail <= 0:
-        return "Collateral fully tapped — sell or build more products to borrow again."
+        return False, "Collateral fully tapped — sell or build more products to borrow again."
     if amount > avail:
-        return f"Borrow limit is ${avail:,} (30% of finished product base value)."
+        return False, f"Borrow limit is ${avail:,} (30% of finished product base value)."
     state["cash"] += amount
     state["debt"] += amount
     state["collateral_debt"] = state.get("collateral_debt", 0) + amount
-    return f"💵 Borrowed ${amount:,} against inventory. Cash: ${state['cash']:,}, Debt: ${state['debt']:,}."
+    return True, f"💵 Borrowed ${amount:,} against inventory. Cash: ${state['cash']:,}, Debt: ${state['debt']:,}."
 
 def do_pay_debt(state, amount):
     if amount <= 0:
-        return "Enter a positive amount."
+        return False, "Enter a positive amount."
     if amount > state["cash"]:
-        return "Not enough cash."
+        return False, "Not enough cash."
     if amount > state["debt"]:
         amount = state["debt"]
     state["cash"] -= amount
     state["debt"] -= amount
     if state.get("collateral_debt", 0) > state["debt"]:
         state["collateral_debt"] = state["debt"]
-    return f"Paid ${amount:,} toward debt. Remaining: ${state['debt']:,}."
+    return True, f"Paid ${amount:,} toward debt. Remaining: ${state['debt']:,}."
 
 # ─────────────────────────────────────────────
 # UI
@@ -930,7 +929,11 @@ def menu_buy(state):
     if qty < 1:
         state["message"] = "Quantity must be a positive number of millions."
         return
-    state["message"] = do_buy_tokens(state, token, qty)
+    ok, msg = do_buy_tokens(state, token, qty)
+    if ok:
+        advance_days(state, 1)
+    if not state["message"]:
+        state["message"] = msg
 
 def menu_sell(state):
     if state["location_type"] != "client":
@@ -965,11 +968,14 @@ def menu_sell(state):
     if not (1 <= pidx <= len(state["products"])):
         state["message"] = f"Pick a product between 1 and {len(state['products'])}."
         return
-    result = do_sell_product(state, pidx - 1, client_idx)
-    state["message"] = result
+    ok, msg = do_sell_product(state, pidx - 1, client_idx)
     # Show the outcome inline so the player sees it before the screen redraws.
-    print(f"\n  ➤  {result}")
+    print(f"\n  ➤  {msg}")
     pause()
+    if ok:
+        advance_days(state, 1)
+    if not state["message"]:
+        state["message"] = msg
 
 def menu_craft(state):
     if state["crafting"]:
@@ -988,7 +994,11 @@ def menu_craft(state):
         state["message"] = f"Pick a product between 1 and {len(PRODUCTS)}."
         return
     product_name = list(PRODUCTS.keys())[choice - 1]
-    state["message"] = do_craft(state, product_name)
+    ok, msg = do_craft(state, product_name)
+    if ok:
+        advance_days(state, 1)
+    if not state["message"]:
+        state["message"] = msg
 
 def menu_travel(state):
     print("\n  Destinations:\n")
@@ -1019,27 +1029,16 @@ def menu_travel(state):
         state["message"] = f"Pick a destination between 1 and {len(destinations)}."
         return
     dest_name, dest_type = destinations[choice - 1]
-    err = do_travel(state, dest_name, dest_type)
-    if err:
-        state["message"] = err
-    else:
-        if not state["message"]:
-            state["message"] = f"Travelled to {dest_name}. Day advanced."
-
-def menu_wait(state):
-    days = prompt_int("Days to wait (1-5, or 0 to cancel)")
-    if days is INVALID_INPUT:
-        state["message"] = "Please enter a number of days."
-        return
-    if days is None or days == 0:
-        return
-    if days < 1:
-        state["message"] = "Days must be a positive number."
-        return
-    days = min(5, days)
-    advance_days(state, days)
+    ok, msg = do_travel(state, dest_name, dest_type)
+    if ok:
+        advance_days(state, 1)
     if not state["message"]:
-        state["message"] = f"Waited {days} day(s)."
+        state["message"] = msg
+
+def menu_next(state):
+    advance_days(state, 1)
+    if not state["message"]:
+        state["message"] = "Day advanced."
 
 def menu_borrow(state):
     limit = borrow_limit(state)
@@ -1059,7 +1058,11 @@ def menu_borrow(state):
         return
     if amount is None or amount == 0:
         return
-    state["message"] = do_borrow(state, amount)
+    ok, msg = do_borrow(state, amount)
+    if ok:
+        advance_days(state, 1)
+    if not state["message"]:
+        state["message"] = msg
 
 def menu_pay_debt(state):
     print(f"\n  Outstanding debt: ${state['debt']:,}")
@@ -1072,7 +1075,11 @@ def menu_pay_debt(state):
         return
     if amount is None or amount == 0:
         return
-    state["message"] = do_pay_debt(state, amount)
+    ok, msg = do_pay_debt(state, amount)
+    if ok:
+        advance_days(state, 1)
+    if not state["message"]:
+        state["message"] = msg
 
 # ─────────────────────────────────────────────
 # END SCREEN
@@ -1181,9 +1188,9 @@ def game_loop(state):
             primary,
             _key("C", "raft"),
             _key("T", "ravel"),
-            _key("W", "ait"),
             _key("L", "end"),
             _key("P", "ay"),
+            _key("N", "ext"),
             _key("Q", "uit"),
         ])
         print(f"  {menu}")
@@ -1201,8 +1208,8 @@ def game_loop(state):
             menu_craft(state)
         elif cmd == "t":
             menu_travel(state)
-        elif cmd == "w":
-            menu_wait(state)
+        elif cmd == "n":
+            menu_next(state)
         elif cmd == "l":
             menu_borrow(state)
         elif cmd == "p":

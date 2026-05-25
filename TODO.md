@@ -4,9 +4,9 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-- [ ] Show remaining build days on the active-build panel during crafting
-- [ ] Rework intro text and tighten the opening story beats
-- [ ] Make it turn based
+- [x] Make it turn based (every action = 1 day; Wait → Next, single-day, end of menu)
+- [ ] Rebalance the game mechanics (planner win rate dropped 66.5% → 46.0% after turn-based change)
+- [ ] Sort the travel destinations better
 
 ## Next
 

@@ -30,37 +30,53 @@ import hallucination_inc as g
 # under the same constraints a human does.
 
 def execute(state, action):
-    """Apply one action. Returns (ok, note). Enforces UI-level restrictions."""
+    """Apply one action. Returns (ok, note). Enforces UI-level restrictions.
+
+    Each successful action advances exactly one day — the game is turn-based.
+    """
     if action is None:
+        g.advance_days(state, 1)
         return True, "noop"
     kind = action[0]
     if kind == "buy":
         if state["location_type"] != "provider":
             return False, "buy requires provider location"
         _, token, qty = action
-        g.do_buy_tokens(state, token, qty)
+        ok, _ = g.do_buy_tokens(state, token, qty)
+        if ok:
+            g.advance_days(state, 1)
         return True, "buy"
     if kind == "craft":
         _, product = action
-        g.do_craft(state, product)
+        ok, _ = g.do_craft(state, product)
+        if ok:
+            g.advance_days(state, 1)
         return True, "craft"
     if kind == "sell":
         if state["location_type"] != "client":
             return False, "sell requires client location"
         _, p_idx, c_idx = action
-        g.do_sell_product(state, p_idx, c_idx)
+        ok, _ = g.do_sell_product(state, p_idx, c_idx)
+        if ok:
+            g.advance_days(state, 1)
         return True, "sell"
     if kind == "travel":
         _, dest_name, dest_type = action
-        g.do_travel(state, dest_name, dest_type)
+        ok, _ = g.do_travel(state, dest_name, dest_type)
+        if ok:
+            g.advance_days(state, 1)
         return True, "travel"
     if kind == "wait":
+        # Bots can still request multi-day skips by repeating the action;
+        # the UI's Next is single-day, but the simulator keeps N for convenience.
         _, days = action
         g.advance_days(state, max(1, min(5, days)))
         return True, "wait"
     if kind == "pay":
         _, amount = action
-        g.do_pay_debt(state, amount)
+        ok, _ = g.do_pay_debt(state, amount)
+        if ok:
+            g.advance_days(state, 1)
         return True, "pay"
     return False, f"unknown action {kind}"
 
