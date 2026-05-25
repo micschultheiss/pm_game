@@ -14,9 +14,10 @@ import shutil
 # ─────────────────────────────────────────────
 
 MAX_DAYS              = 30
-STARTING_CASH         = 50_000
-STARTING_DEBT         = 300_000
-DEBT_INTEREST         = 0.02    # 2% per day on outstanding debt
+STARTING_CASH         = 100_000
+STARTING_DEBT         = 100_000
+DEBT_INTEREST         = 0.05    # 5% per day on outstanding debt
+COLLATERAL_LTV        = 0.30    # max loan as % of finished product base value
 TRAVEL_COST           = 30_000  # biz dev / sales travel — pitch decks aren't free
 MAX_TOKENS            = 500     # max storage in millions of tokens
 QUALITY_BONUS_CAP     = 1.2     # max premium for over-spec quality
@@ -326,6 +327,7 @@ def new_game():
     state = {
         "cash":             STARTING_CASH,
         "debt":             STARTING_DEBT,
+        "collateral_debt":  0,
         "day":              1,
         "location":         None,
         "location_type":    None,
@@ -628,6 +630,28 @@ def do_travel(state, dest_name, dest_type):
     advance_days(state, 1)
     return None
 
+def borrow_limit(state):
+    total_base = sum(PRODUCTS[p["name"]]["base_value"] for p in state["products"])
+    return int(total_base * COLLATERAL_LTV)
+
+def borrow_available(state):
+    return max(0, borrow_limit(state) - state.get("collateral_debt", 0))
+
+def do_borrow(state, amount):
+    if amount <= 0:
+        return "Enter a positive amount."
+    if not state["products"]:
+        return "You need at least one finished product as collateral."
+    avail = borrow_available(state)
+    if avail <= 0:
+        return "Collateral fully tapped — sell or build more products to borrow again."
+    if amount > avail:
+        return f"Borrow limit is ${avail:,} (30% of finished product base value)."
+    state["cash"] += amount
+    state["debt"] += amount
+    state["collateral_debt"] = state.get("collateral_debt", 0) + amount
+    return f"💵 Borrowed ${amount:,} against inventory. Cash: ${state['cash']:,}, Debt: ${state['debt']:,}."
+
 def do_pay_debt(state, amount):
     if amount <= 0:
         return "Enter a positive amount."
@@ -637,6 +661,8 @@ def do_pay_debt(state, amount):
         amount = state["debt"]
     state["cash"] -= amount
     state["debt"] -= amount
+    if state.get("collateral_debt", 0) > state["debt"]:
+        state["collateral_debt"] = state["debt"]
     return f"Paid ${amount:,} toward debt. Remaining: ${state['debt']:,}."
 
 # ─────────────────────────────────────────────
@@ -1012,6 +1038,26 @@ def menu_wait(state):
     if not state["message"]:
         state["message"] = f"Waited {days} day(s)."
 
+def menu_borrow(state):
+    limit = borrow_limit(state)
+    avail = borrow_available(state)
+    print(f"\n  Collateral line: ${limit:,} (30% of finished product base value)")
+    print(f"  Already borrowed against inventory: ${state.get('collateral_debt', 0):,}")
+    print(f"  Available to borrow now: ${avail:,}")
+    if avail <= 0:
+        if not state["products"]:
+            state["message"] = "You need at least one finished product as collateral."
+        else:
+            state["message"] = "Collateral fully tapped — sell or build more products to borrow again."
+        return
+    amount = prompt_int("Amount to borrow (0 to cancel)")
+    if amount is INVALID_INPUT:
+        state["message"] = "Please enter a dollar amount."
+        return
+    if amount is None or amount == 0:
+        return
+    state["message"] = do_borrow(state, amount)
+
 def menu_pay_debt(state):
     print(f"\n  Outstanding debt: ${state['debt']:,}")
     if state["debt"] == 0:
@@ -1133,6 +1179,7 @@ def game_loop(state):
             _key("C", "raft"),
             _key("T", "ravel"),
             _key("W", "ait"),
+            _key("L", "end"),
             _key("P", "ay"),
             _key("Q", "uit"),
         ])
@@ -1153,6 +1200,8 @@ def game_loop(state):
             menu_travel(state)
         elif cmd == "w":
             menu_wait(state)
+        elif cmd == "l":
+            menu_borrow(state)
         elif cmd == "p":
             menu_pay_debt(state)
         elif cmd == "q":
@@ -1178,7 +1227,7 @@ def main():
   Buy cheap tokens, craft high-quality products,
   and sell before your debt eats you alive.
 
-  Starting cash: $35K. Starting debt: $300K (compounding 2%/day).
+  Starting cash: $100K. Starting debt: $100K (compounding 5%/day).
 
   - Travel/sales trip costs $30K + 1 day (flights, decks, dinners…)
   - Crafting takes 3-6 days (50-200M tokens per build)
@@ -1186,6 +1235,7 @@ def main():
   - Clients rotate every 3-7 days
   - Token quality (model maturity) gates client sales
   - Cap on quality bonus — over-spec doesn't pay extra
+  - [L]end: borrow up to 30% of your finished products' base value
 
   You have 30 days to clear the debt and build a real business.
 """)
