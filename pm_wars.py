@@ -705,11 +705,54 @@ def do_pay_debt(state, amount):
 
 WIDTH = 64
 
+# Tasteful ANSI colors — visible info first, decoration second.
+class _C:
+    RESET     = "\033[0m"
+    BOLD      = "\033[1m"
+    DIM       = "\033[2m"
+    RED       = "\033[31m"
+    GREEN     = "\033[32m"
+    YELLOW    = "\033[33m"
+    BLUE      = "\033[34m"
+    MAGENTA   = "\033[35m"
+    CYAN      = "\033[36m"
+    BR_RED    = "\033[91m"
+    BR_GREEN  = "\033[92m"
+    BR_YELLOW = "\033[93m"
+    BR_CYAN   = "\033[96m"
+
+def _col(text, *codes):
+    return f"{''.join(codes)}{text}{_C.RESET}"
+
+def _cash_color(amt):
+    if amt >= 50_000: return _C.BR_GREEN
+    if amt >= 10_000: return _C.GREEN
+    if amt >=  5_000: return _C.YELLOW
+    return _C.BR_RED
+
+def _quality_color(q):
+    if q >= 0.85: return _C.BR_GREEN
+    if q >= 0.70: return _C.GREEN
+    if q >= 0.55: return _C.YELLOW
+    return _C.BR_RED
+
+def _price_color(price, base):
+    ratio = price / base if base else 1.0
+    if ratio <= 0.85: return _C.GREEN
+    if ratio >= 1.30: return _C.RED
+    return _C.YELLOW
+
+def _key(letter, rest):
+    return f"[{_col(letter, _C.BOLD, _C.BR_CYAN)}]{rest}"
+
 def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
 def rule(char="─"):
-    print(char * WIDTH)
+    if char == "═":
+        print(_col(char * WIDTH, _C.BOLD, _C.BR_CYAN))
+    else:
+        print(_col(char * WIDTH, _C.DIM))
 
 def pause(label="Press ENTER to continue..."):
     try:
@@ -728,15 +771,29 @@ def header(state):
             if c["name"] == state["location"]:
                 loc_label += f" ({c['type']})"
                 break
-    print(f"  CODE WARS  |  Day {state['day']}/{MAX_DAYS}  |  {loc_label}")
+    title = _col("CODE WARS", _C.BOLD, _C.BR_CYAN)
+    day = _col(f"Day {state['day']}/{MAX_DAYS}", _C.BR_YELLOW)
+    loc_color = _C.CYAN if state["location_type"] == "provider" else _C.MAGENTA
+    loc = _col(loc_label, _C.BOLD, loc_color)
+    print(f"  {title}  |  {day}  |  {loc}")
     rule("═")
     nw = net_worth(state)
     nw_sign = "+" if nw >= 0 else ""
-    print(f"  💰 Cash: ${state['cash']:>9,}   🎯 Net Worth: {nw_sign}${nw:,}")
-    print(f"  💳 Debt: ${state['debt']:>9,}   📦 Token Storage: {token_total(state)}M/{MAX_TOKENS}M")
+    cash_str = _col(f"${state['cash']:>9,}", _cash_color(state["cash"]))
+    nw_color = _C.BR_GREEN if nw >= 0 else _C.BR_RED
+    nw_str = _col(f"{nw_sign}${nw:,}", nw_color)
+    debt_str = _col(f"${state['debt']:>9,}", _C.RED if state["debt"] > 0 else _C.GREEN)
+    tok = token_total(state)
+    storage_str = _col(f"{tok}M/{MAX_TOKENS}M",
+                       _C.YELLOW if tok > MAX_TOKENS * 0.8 else _C.CYAN)
+    print(f"  💰 Cash: {cash_str}   🎯 Net Worth: {nw_str}")
+    print(f"  💳 Debt: {debt_str}   📦 Token Storage: {storage_str}")
     if state["crafting"]:
         c = state["crafting"]
-        print(f"  🔨 Crafting: {c['name']} ({c['days_left']}d left, {c['quality']:.0%} quality)")
+        name_str = _col(c["name"], _C.MAGENTA)
+        q_str = _col(f"{c['quality']:.0%}", _quality_color(c["quality"]))
+        days_str = _col(f"{c['days_left']}d", _C.YELLOW)
+        print(f"  🔨 Crafting: {name_str} ({days_str} left, {q_str} quality)")
     rule()
 
 def status_bar(state):
@@ -744,21 +801,28 @@ def status_bar(state):
     crafting = ""
     if state["crafting"]:
         c = state["crafting"]
-        crafting = f"   🔨 {c['name']} ({c['days_left']}d, {c['quality']:.0%})"
+        name_str = _col(c["name"], _C.MAGENTA)
+        q_str = _col(f"{c['quality']:.0%}", _quality_color(c["quality"]))
+        crafting = f"   🔨 {name_str} ({c['days_left']}d, {q_str})"
+    cash_str = _col(f"${state['cash']:,}", _cash_color(state["cash"]))
+    debt_str = _col(f"${state['debt']:,}", _C.RED if state["debt"] > 0 else _C.GREEN)
+    day_str = _col(f"Day {state['day']}/{MAX_DAYS}", _C.BR_YELLOW)
+    tok = token_total(state)
+    storage_str = _col(f"{tok}M/{MAX_TOKENS}M",
+                       _C.YELLOW if tok > MAX_TOKENS * 0.8 else _C.CYAN)
     rule()
-    print(f"  💰 ${state['cash']:,}   💳 ${state['debt']:,}   "
-          f"📅 Day {state['day']}/{MAX_DAYS}   📦 {token_total(state)}M/{MAX_TOKENS}M{crafting}")
+    print(f"  💰 {cash_str}   💳 {debt_str}   📅 {day_str}   📦 {storage_str}{crafting}")
     rule()
 
 def show_event(state):
     if state["last_event"]:
-        print(f"\n  ⚡ {state['last_event']}\n")
+        print(_col(f"\n  ⚡ {state['last_event']}\n", _C.BR_YELLOW))
         state["last_event"] = None
 
 def show_message(state):
     if state["message"]:
         rule()
-        print(f"  ➤  {state['message']}")
+        print(_col(f"  ➤  {state['message']}", _C.BOLD, _C.BR_CYAN))
         rule()
         state["message"] = None
 
@@ -766,66 +830,99 @@ def show_provider(state):
     prov = state["location"]
     quality = PROVIDERS[prov]["quality"]
     prices = state["provider_prices"][prov]
-    print(f"\n  Token prices at {prov} (quality: {quality:.0%}, per million):\n")
-    print(f"  {'#':<4} {'Token':<12} {'$/M':>8}   {'You Have':>10}")
-    print(f"  {'─'*4} {'─'*12} {'─'*8}   {'─'*10}")
+    base_prices = PROVIDERS[prov]["base_prices"]
+    prov_str = _col(prov, _C.BOLD, _C.CYAN)
+    q_str = _col(f"{quality:.0%}", _quality_color(quality))
+    print(f"\n  Token prices at {prov_str} (quality: {q_str}, per million):\n")
+    head = f"  {'#':<4} {'Token':<12} {'$/M':>8}   {'You Have':>10}"
+    print(_col(head, _C.BOLD))
+    print(f"  {_col('─'*4, _C.DIM)} {_col('─'*12, _C.DIM)} {_col('─'*8, _C.DIM)}   {_col('─'*10, _C.DIM)}")
     for i, token in enumerate(TOKEN_TYPES, 1):
         price = prices[token]
+        base = base_prices[token]
         held = state["tokens"].get(token, {"qty": 0})["qty"]
         avg_q = token_avg_quality(state, token)
-        held_str = f"{held}M" if held else "—"
+        price_str = _col(f"${price:>7,}", _price_color(price, base))
+        tok_color = _C.CYAN if held > 0 else _C.DIM
+        token_str = _col(f"{token:<12}", tok_color)
         if held > 0:
-            held_str += f" ({avg_q:.0%}q)"
-        print(f"  {i:<4} {token:<12} ${price:>7,}   {held_str:>10}")
+            q_part = _col(f"({avg_q:.0%}q)", _quality_color(avg_q))
+            visible = f"{held}M ({avg_q:.0%}q)"
+            held_str = " " * max(0, 10 - len(visible)) + f"{held}M {q_part}"
+        else:
+            held_str = " " * 9 + _col("—", _C.DIM)
+        print(f"  {i:<4} {token_str} {price_str}   {held_str}")
 
 def show_client_offers(state):
-    print(f"\n  {state['location']} wants:\n")
+    loc_str = _col(state["location"], _C.BOLD, _C.MAGENTA)
+    print(f"\n  {loc_str} wants:\n")
     client = None
     for c in state["active_clients"]:
         if c["name"] == state["location"]:
             client = c
             break
     if not client or not client["current_wants"]:
-        print("  (this client has no open contracts right now)")
+        print(_col("  (this client has no open contracts right now)", _C.DIM))
         return
-    print(f"  {'#':<4} {'Product':<26} {'Pays':>8}   {'Min Quality':>11}")
-    print(f"  {'─'*4} {'─'*26} {'─'*8}   {'─'*11}")
+    head = f"  {'#':<4} {'Product':<26} {'Pays':>8}   {'Min Quality':>11}"
+    print(_col(head, _C.BOLD))
+    print(f"  {_col('─'*4, _C.DIM)} {_col('─'*26, _C.DIM)} {_col('─'*8, _C.DIM)}   {_col('─'*11, _C.DIM)}")
     for i, (prod, info) in enumerate(client["current_wants"].items(), 1):
-        print(f"  {i:<4} {prod:<26} ${info['budget']:>7,}   {info['min_quality']:>10.0%}")
+        prod_str = _col(f"{prod:<26}", _C.CYAN)
+        budget_str = _col(f"${info['budget']:>7,}", _C.BR_GREEN)
+        mq_str = _col(f"{info['min_quality']:>10.0%}", _quality_color(info["min_quality"]))
+        print(f"  {i:<4} {prod_str} {budget_str}   {mq_str}")
 
 def show_tokens(state):
     if not state["tokens"]:
-        print("\n  Tokens: (none)")
+        print(_col("\n  Tokens: (none)", _C.DIM))
         return
-    print("\n  Your tokens:")
+    print(_col("\n  Your tokens:", _C.BOLD))
     for token, data in state["tokens"].items():
         avg_q = data["quality_sum"] / data["qty"] if data["qty"] > 0 else 0
-        print(f"    {token:<12} {data['qty']}M  (avg quality: {avg_q:.0%})")
+        tok_str = _col(f"{token:<12}", _C.CYAN)
+        qty_str = _col(f"{data['qty']}M", _C.BR_CYAN)
+        q_str = _col(f"{avg_q:.0%}", _quality_color(avg_q))
+        print(f"    {tok_str} {qty_str}  (avg quality: {q_str})")
 
 def show_products(state):
     if not state["products"]:
-        print("\n  Built products: (none)")
+        print(_col("\n  Built products: (none)", _C.DIM))
         return
-    print("\n  Built products:")
+    print(_col("\n  Built products:", _C.BOLD))
     for i, p in enumerate(state["products"], 1):
-        print(f"    {i}. {p['name']}  (quality: {p['quality']:.0%})")
+        name_str = _col(p["name"], _C.MAGENTA)
+        q_str = _col(f"{p['quality']:.0%}", _quality_color(p["quality"]))
+        print(f"    {i}. {name_str}  (quality: {q_str})")
 
 def show_craftable(state):
-    print("\n  Product catalog — costs to craft & base contract value:")
-    print(f"  {'#':<3}{'Product':<24}{'Build':>6}  {'Recipe (M tokens)':<40}{'Base $':>8}  Ready")
-    print(f"  {'─'*3}{'─'*24}{'─'*6}  {'─'*40}{'─'*8}  {'─'*5}")
+    print(_col("\n  Product catalog — costs to craft & base contract value:", _C.BOLD))
+    head = f"  {'#':<3}{'Product':<24}{'Build':>6}  {'Recipe (M tokens)':<40}{'Base $':>8}  Ready"
+    print(_col(head, _C.BOLD))
+    print(f"  {_col('─'*3, _C.DIM)}{_col('─'*24, _C.DIM)}{_col('─'*6, _C.DIM)}  "
+          f"{_col('─'*40, _C.DIM)}{_col('─'*8, _C.DIM)}  {_col('─'*5, _C.DIM)}")
     for i, (name, prod) in enumerate(PRODUCTS.items(), 1):
         recipe_str = " + ".join(f"{n}M {t}" for t, n in prod["recipe"].items())
-        ready = "✓" if can_craft(state, name) else "·"
-        base_str = f"${prod['base_value']//1000}K"
-        print(f"  {i:<3}{name:<24}{prod['craft_days']:>5}d  {recipe_str:<40}{base_str:>8}    {ready}")
+        buildable = can_craft(state, name)
+        ready_str = _col("✓", _C.BR_GREEN) if buildable else _col("·", _C.DIM)
+        base_raw = f"${prod['base_value']//1000}K"
+        base_str = _col(f"{base_raw:>8}", _C.BR_GREEN)
+        name_str = _col(f"{name:<24}", _C.BR_CYAN if buildable else _C.CYAN)
+        days_str = _col(f"{prod['craft_days']:>5}d", _C.YELLOW)
+        print(f"  {i:<3}{name_str}{days_str}  {recipe_str:<40}{base_str}    {ready_str}")
 
 def show_all_clients(state):
-    print("\n  Active client contracts:")
+    print(_col("\n  Active client contracts:", _C.BOLD))
     for c in state["active_clients"]:
-        tag = "GOV" if c["type"] == "Government" else "ENT"
-        wants_str = ", ".join(c["current_wants"].keys()) if c["current_wants"] else "(satisfied)"
-        print(f"    [{tag}] {c['name']:<25} wants: {wants_str}")
+        is_gov = c["type"] == "Government"
+        tag_color = _C.BLUE if is_gov else _C.MAGENTA
+        tag = _col("GOV" if is_gov else "ENT", _C.BOLD, tag_color)
+        name_str = _col(f"{c['name']:<25}", _C.BOLD)
+        if c["current_wants"]:
+            wants_str = _col(", ".join(c["current_wants"].keys()), _C.CYAN)
+        else:
+            wants_str = _col("(satisfied)", _C.DIM)
+        print(f"    [{tag}] {name_str} wants: {wants_str}")
 
 def prompt_int(label):
     try:
@@ -1099,8 +1196,17 @@ def game_loop(state):
         show_all_clients(state)
         show_message(state)
         status_bar(state)
-        actions = "[B]uy" if state["location_type"] == "provider" else "[S]ell"
-        print(f"  {actions}  [C]raft  [R]efactor  [T]ravel  [W]ait  [P]ay  [Q]uit")
+        primary = _key("B", "uy") if state["location_type"] == "provider" else _key("S", "ell")
+        menu = "  ".join([
+            primary,
+            _key("C", "raft"),
+            _key("R", "efactor"),
+            _key("T", "ravel"),
+            _key("W", "ait"),
+            _key("P", "ay"),
+            _key("Q", "uit"),
+        ])
+        print(f"  {menu}")
         rule()
         try:
             cmd = input("  > ").strip().lower()
