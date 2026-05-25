@@ -7,6 +7,7 @@ and sell them to enterprise and government clients before your runway burns out.
 
 import random
 import os
+import shutil
 
 # ─────────────────────────────────────────────
 # CONSTANTS
@@ -703,7 +704,10 @@ def do_pay_debt(state, amount):
 # UI
 # ─────────────────────────────────────────────
 
-WIDTH = 64
+def _term_width():
+    """Live terminal width, clamped to keep tables readable."""
+    cols = shutil.get_terminal_size((80, 24)).columns
+    return max(64, min(cols, 120))
 
 # Only color is the action-menu hotkey letter (bright cyan / light blue).
 _CY  = "\033[96m"
@@ -717,7 +721,7 @@ def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
 def rule(char="─"):
-    print(char * WIDTH)
+    print(char * _term_width())
 
 def pause(label="Press ENTER to continue..."):
     try:
@@ -1168,8 +1172,6 @@ def game_loop(state):
         show_location_panel(state)
         show_inventory_inline(state)
         print()
-        rule()
-        show_market_demand(state)
         rule()
         show_open_contracts(state)
         rule()
