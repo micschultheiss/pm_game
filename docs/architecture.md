@@ -2,7 +2,7 @@
 
 ## Overview
 
-PM Wars is a single-process, single-file Python terminal game. The entire runtime — state, game loop, UI, and rules — lives in [pm_wars.py](../pm_wars.py). A separate [simulate.py](../simulate.py) drives the same rules headlessly for balance testing.
+Hallucination Inc. is a single-process, single-file Python terminal game. The entire runtime — state, game loop, UI, and rules — lives in [pm_wars.py](../pm_wars.py). A separate [simulate.py](../simulate.py) drives the same rules headlessly for balance testing.
 
 There is no server, no database, no save file, no network call. A run starts when you invoke `python3 pm_wars.py` and ends when the player quits, runs out of days, or goes bankrupt.
 

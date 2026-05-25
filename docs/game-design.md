@@ -62,7 +62,7 @@ Final net worth = cash − debt. Bands (and tone) are intentionally meme-y:
 
 ## Tone
 
-UI copy, event headlines, and end-screen messages lean into PM/AI satire. "Vibe coding," "the vibes were NOT coding," EU AI Act shocks, investor margin calls, model deprecation decay. The satire is part of the product — keep the register when extending.
+UI copy, event headlines, and end-screen messages lean into PM/AI satire. "It was all hallucinated," EU AI Act shocks, investor margin calls, model deprecation decay. The satire is part of the product — keep the register when extending.
 
 ## What we are not building
 

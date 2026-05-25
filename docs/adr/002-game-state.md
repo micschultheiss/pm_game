@@ -5,7 +5,7 @@
 
 ## Context
 
-PM Wars has a non-trivial amount of state per run: cash, debt, day counter, location, token inventory (with weighted quality per type), one active build, finished products, an active client board with drift, recent event headlines.
+Hallucination Inc. has a non-trivial amount of state per run: cash, debt, day counter, location, token inventory (with weighted quality per type), one active build, finished products, an active client board with drift, recent event headlines.
 
 We needed to decide:
 

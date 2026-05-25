@@ -4,7 +4,7 @@ Context for Claude Code when working in this repo.
 
 ## What this is
 
-A single-file Python terminal game (`pm_wars.py`, banner title "VIBE WARS") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
+A single-file Python terminal game (`pm_wars.py`, banner title "HALLUCINATION INC.") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
 
 See [README.md](README.md) for how to run it and [docs/PM_Wars_PRD.md](docs/PM_Wars_PRD.md) for the full product spec.
 
@@ -37,7 +37,7 @@ These exist for balance reasons. Removing or watering them down breaks the game.
 
 Use `simulate.py` to run headless games before/after a change. A change that shifts win rates, average net worth, or bankruptcy rate by a lot needs a deliberate justification — don't silently rebalance.
 
-## Out of scope
+## Out of scope for now
 
 - Networking, persistence, save files, multiplayer.
 - GUI / web frontend.
@@ -47,3 +47,11 @@ Use `simulate.py` to run headless games before/after a change. A change that shi
 - After completing any task or subtask, commit with a conventional commit message
 - Push to the current branch immediately after committing
 - Do not wait to be asked
+
+## Memory & docs maintenance
+
+After completing any task that changes behaviour, architecture, or decisions:
+- Update `TODO.md` — check off done items, add newly discovered tasks
+- Append to `.github/NOTES.md` with date + what changed and why
+- If a new technical decision was made, create or update the relevant `docs/adr/`
+- If architecture changed, update `docs/architecture.md`

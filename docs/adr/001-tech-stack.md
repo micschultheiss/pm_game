@@ -5,7 +5,7 @@
 
 ## Context
 
-PM Wars is a small terminal game built as an AI-assisted coding exercise. The audience is technically curious PMs, AI builders, and operators — people likely to have a terminal and Python already installed, and likely to read or fork the code.
+Hallucination Inc. is a small terminal game built as an AI-assisted coding exercise. The audience is technically curious PMs, AI builders, and operators — people likely to have a terminal and Python already installed, and likely to read or fork the code.
 
 We needed to pick:
 

@@ -1,8 +1,8 @@
-# Code Wars
+# Hallucination Inc.
 
 ### TL;DR
 
-Code Wars is a simple game that reimagines the Drug Wars economic loop for AI product management. Players have 30 in-game days to buy LLM tokens, craft AI SaaS products, sell them to enterprise and government clients, manage compounding debt, and avoid bankruptcy. The target audience is technically curious product managers, AI builders, and startup operators game fans who enjoy strategic resource optimization with a meme-forward AI industry theme.
+Hallucination Inc. is a simple game that reimagines the Drug Wars economic loop for AI product management. Players have 30 in-game days to buy LLM tokens, craft AI SaaS products, sell them to enterprise and government clients, manage compounding debt, and avoid bankruptcy. The target audience is technically curious product managers, AI builders, and startup operators game fans who enjoy strategic resource optimization with a meme-forward AI industry theme.
 
 ---
 
@@ -125,7 +125,7 @@ Maintainer / Future Contributor
 
 Entry Point & First-Time User Experience
 
-* The first screen introduces the premise: the player is a vibe-coding Senior PM trying to turn AI tokens into SaaS contracts before debt compounds into bankruptcy.
+* The first screen introduces the premise: the player is a Senior PM trying to turn AI tokens into SaaS contracts before debt compounds into bankruptcy.
 * The game explains the starting state: 30 days, $35,000 cash, $300,000 debt, and 2% daily debt interest.
 * The player sees the current location, initial provider or client state, inventory, active client roster, and command shortcuts.
 * No lengthy tutorial is required; the interface should teach through clear labels, action validation, and helpful error messages.
@@ -197,11 +197,11 @@ Advanced Features & Edge Cases
 
 ## Narrative
 
-You are a vibe-coding Senior Product Manager with a dangerous amount of confidence, $35,000 in cash, and $300,000 of debt compounding at 2% per day. The market is moving fast: Anthropic is premium, Meta is cheap, Google is flooding the zone, and every enterprise client wants AI yesterday as long as it passes procurement. Your job is to arbitrage the chaos.
+You are a Senior Product Manager with a dangerous amount of confidence, $35,000 in cash, and $300,000 of debt compounding at 2% per day. The market is moving fast: Anthropic is premium, Meta is cheap, Google is flooding the zone, and every enterprise client wants AI yesterday as long as it passes procurement. Your job is to arbitrage the chaos.
 
 Each day, you decide where to spend scarce cash and time. You can buy cheap tokens and ship fast, but low-quality ingredients may fail government quality floors. You can overpay for premium tokens and chase big contracts, but debt compounds while builds decay and client priorities shift. A Compliance Dashboard might be worth a fortune after an EU AI Act shock, or it might sit on the shelf long enough to become yesterday's model wrapper.
 
-Code Wars turns AI hype into a compact strategy loop: source tokens, craft products, refactor when quality is close, sell before demand rotates away, and decide whether to pay down debt or take one more risky swing. At the end of 30 days, the market renders judgment. Maybe you become a Unicorn. Maybe you scrape into Ramen Profitable. Or maybe the vibes were not coding.
+Hallucination Inc. turns AI hype into a compact strategy loop: source tokens, craft products, refactor when quality is close, sell before demand rotates away, and decide whether to pay down debt or take one more risky swing. At the end of 30 days, the market renders judgment. Maybe you become a Unicorn. Maybe you scrape into Ramen Profitable. Or maybe it was all hallucinated.
 
 ---
 

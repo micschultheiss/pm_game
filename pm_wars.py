@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Code Wars - Vibe Coding Edition
+Hallucination Inc.
 Buy LLM tokens (in millions) from AI providers, craft SaaS products,
 and sell them to enterprise and government clients before your runway burns out.
 """
@@ -706,7 +706,7 @@ def header(state):
             if c["name"] == state["location"]:
                 loc_label += f" ({c['type']})"
                 break
-    print(f"  CODE WARS · Day {state['day']}/{MAX_DAYS} · {loc_label}")
+    print(f"  HALLUCINATION INC. · Day {state['day']}/{MAX_DAYS} · {loc_label}")
     crafting = "🔨 idle"
     if state["crafting"]:
         c = state["crafting"]
@@ -1093,9 +1093,9 @@ def end_screen(state):
     elif nw >= 100_000:
         grade = "✅ RAMEN PROFITABLE — Scrappy, but you made it work."
     elif nw >= 0:
-        grade = "😅 BROKE EVEN — The vibes were mid."
+        grade = "😅 BROKE EVEN — The hallucinations were mid."
     else:
-        grade = "💀 BANKRUPT — The vibes were NOT coding."
+        grade = "💀 BANKRUPT — Turns out it was all hallucinated."
     print(f"\n  {grade}\n")
     rule("═")
 
@@ -1215,10 +1215,10 @@ def game_loop(state):
 def main():
     clear()
     rule("═")
-    print("  CODE WARS — Where AI Meets Enterprise")
+    print("  HALLUCINATION INC. — Where AI Meets Enterprise")
     rule("═")
     print("""
-  You're a vibe-coding Senior PM hustling AI products.
+  You're a Senior PM hustling AI products.
   Travel to LLM providers to work on partnership deals and 
   buy tokens at a discount (in millions).
   Craft enterprise SaaS products from those tokens, then
