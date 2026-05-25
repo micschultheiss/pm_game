@@ -20,7 +20,7 @@ import statistics
 import sys
 from collections import Counter, defaultdict
 
-import pm_wars as g
+import hallucination_inc as g
 
 
 # ─────────────────────────────────────────────

@@ -2,15 +2,15 @@
 
 ## Overview
 
-Hallucination Inc. is a single-process, single-file Python terminal game. The entire runtime — state, game loop, UI, and rules — lives in [pm_wars.py](../pm_wars.py). A separate [simulate.py](../simulate.py) drives the same rules headlessly for balance testing.
+Hallucination Inc. is a single-process, single-file Python terminal game. The entire runtime — state, game loop, UI, and rules — lives in [hallucination_inc.py](../hallucination_inc.py). A separate [simulate.py](../simulate.py) drives the same rules headlessly for balance testing.
 
-There is no server, no database, no save file, no network call. A run starts when you invoke `python3 pm_wars.py` and ends when the player quits, runs out of days, or goes bankrupt.
+There is no server, no database, no save file, no network call. A run starts when you invoke `python3 hallucination_inc.py` and ends when the player quits, runs out of days, or goes bankrupt.
 
 ## Components
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                       pm_wars.py                         │
+│                   hallucination_inc.py                   │
 │                                                          │
 │  ┌────────────┐   ┌─────────────┐   ┌────────────────┐   │
 │  │  Constants │   │ Game state  │   │   Daily tick   │   │
@@ -62,7 +62,7 @@ Any new action that costs or produces resources has to be reflected in the oracl
 
 ## Simulator
 
-`simulate.py` imports `pm_wars` and runs N headless games with a scripted or random policy. It's used for balance work — comparing win/loss/bankruptcy distributions across rule changes — not as part of the player experience.
+`simulate.py` imports `hallucination_inc` and runs N headless games with a scripted or random policy. It's used for balance work — comparing win/loss/bankruptcy distributions across rule changes — not as part of the player experience.
 
 ## Why this shape
 

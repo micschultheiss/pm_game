@@ -4,14 +4,14 @@ Context for Claude Code when working in this repo.
 
 ## What this is
 
-A single-file Python terminal game (`pm_wars.py`, banner title "HALLUCINATION INC.") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
+A single-file Python terminal game (`hallucination_inc.py`, banner title "HALLUCINATION INC.") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
 
 See [README.md](README.md) for how to run it and [docs/PM_Wars_PRD.md](docs/PM_Wars_PRD.md) for the full product spec.
 
 ## Layout
 
 ```
-pm_wars.py            # the entire game — one file, stdlib only
+hallucination_inc.py            # the entire game — one file, stdlib only
 simulate.py           # headless runner used to balance/regression-test the loop
 TODO.md               # working backlog
 docs/PM_Wars_PRD.md   # canonical product requirements
@@ -21,7 +21,7 @@ docs/                 # architecture, ADRs, game design notes
 ## Conventions
 
 - **Python 3.8+, standard library only.** No `pip install`, no external deps. Do not add any.
-- **One file.** `pm_wars.py` is intentionally monolithic. Don't split it into a package unless the user asks — the single-file constraint is part of the project's character.
+- **One file.** `hallucination_inc.py` is intentionally monolithic. Don't split it into a package unless the user asks — the single-file constraint is part of the project's character.
 - **Tone is meme-y on purpose.** UI copy, event headlines, and end-game grades are written with PM/AI satire. Keep that register when adding events, clients, or end-screen text.
 
 ## Load-bearing mechanics — do not simplify

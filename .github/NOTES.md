@@ -22,4 +22,4 @@ Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.m
 
 ## Changelog
 
-- **2026-05-25** — Renamed the game from "Code Wars" / "PM Wars" / "Vibe Wars" to **Hallucination Inc.** in all UI copy and docs. Filenames (`pm_wars.py`, `docs/PM_Wars_PRD.md`) intentionally untouched.
+- **2026-05-25** — Renamed the game from "Code Wars" / "PM Wars" / "Vibe Wars" to **Hallucination Inc.** in all UI copy and docs. Then renamed `pm_wars.py` → `hallucination_inc.py`. `docs/PM_Wars_PRD.md` still uses the old filename.

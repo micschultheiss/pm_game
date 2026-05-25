@@ -17,7 +17,7 @@ We needed to pick:
 
 - **Python 3.8+** as the language.
 - **Standard library only** — no `pip install`, no `requirements.txt`, no virtualenv required.
-- **Single file** (`pm_wars.py`) for the entire game.
+- **Single file** (`hallucination_inc.py`) for the entire game.
 
 ## Rationale
 
@@ -36,7 +36,7 @@ We needed to pick:
 
 **Negative**
 
-- `pm_wars.py` is large (~50KB) and will keep growing if we add features. Navigation relies on section comments rather than module boundaries.
+- `hallucination_inc.py` is large (~50KB) and will keep growing if we add features. Navigation relies on section comments rather than module boundaries.
 - We cannot use ecosystem niceties (rich terminal rendering, pydantic-style validation, hypothesis for testing).
 - Cross-platform terminal behavior (ANSI escapes, input handling) has to be handled by hand.
 

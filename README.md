@@ -20,7 +20,7 @@ Hallucination Inc. is a simple game that reimagines the Drug Wars economic loop 
 ## Run it
 
 ```bash
-python3 pm_wars.py
+python3 hallucination_inc.py
 ```
 
 The game runs entirely in the terminal with text prompts.
@@ -29,7 +29,7 @@ The game runs entirely in the terminal with text prompts.
 
 ```
 pm_game/
-├── pm_wars.py         # the game
+├── hallucination_inc.py         # the game
 ├── docs/
 │   └── PM_Wars_PRD.md # product requirements doc
 └── README.md
