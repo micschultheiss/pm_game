@@ -6,7 +6,7 @@ Context for Claude Code when working in this repo.
 
 A single-file Python terminal game (`hallucination_inc.py`, banner title "HALLUCINATION INC.") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
 
-See [README.md](README.md) for how to run it and [docs/PM_Wars_PRD.md](docs/PM_Wars_PRD.md) for the full product spec.
+See [README.md](README.md) for how to run it and [docs/Hallucination_Inc_PRD.md](docs/Hallucination_Inc_PRD.md) for the full product spec.
 
 ## Layout
 
@@ -14,7 +14,7 @@ See [README.md](README.md) for how to run it and [docs/PM_Wars_PRD.md](docs/PM_W
 hallucination_inc.py            # the entire game — one file, stdlib only
 simulate.py           # headless runner used to balance/regression-test the loop
 TODO.md               # working backlog
-docs/PM_Wars_PRD.md   # canonical product requirements
+docs/Hallucination_Inc_PRD.md   # canonical product requirements
 docs/                 # architecture, ADRs, game design notes
 ```
 

@@ -1,12 +1,12 @@
 # TODO
 
-Working backlog. Active items live here; longer-form requirements live in [docs/PM_Wars_PRD.md](docs/PM_Wars_PRD.md).
+Working backlog. Active items live here; longer-form requirements live in [docs/Hallucination_Inc_PRD.md](docs/Hallucination_Inc_PRD.md).
 
 ## Now
 
-- [ ] Validate inputs across all action prompts (quantity, product index, debt payment)
 - [ ] Show remaining build days on the active-build panel during crafting
 - [ ] Rework intro text and tighten the opening story beats
+- [ ] Make it turn based
 
 ## Next
 

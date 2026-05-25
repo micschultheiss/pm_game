@@ -1,6 +1,6 @@
 # Game Design
 
-The canonical product spec lives in [PM_Wars_PRD.md](PM_Wars_PRD.md). This doc focuses on the *design intent* — why the loop is shaped the way it is.
+The canonical product spec lives in [Hallucination_Inc_PRD.md](Hallucination_Inc_PRD.md). This doc focuses on the *design intent* — why the loop is shaped the way it is.
 
 ## Pitch
 

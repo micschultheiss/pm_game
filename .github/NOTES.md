@@ -1,6 +1,6 @@
 # Notes
 
-Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.md); long-form spec lives in [docs/PM_Wars_PRD.md](../docs/PM_Wars_PRD.md).
+Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.md); long-form spec lives in [docs/Hallucination_Inc_PRD.md](../docs/Hallucination_Inc_PRD.md).
 
 ## Open questions
 
@@ -22,4 +22,4 @@ Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.m
 
 ## Changelog
 
-- **2026-05-25** — Renamed the game from "Code Wars" / "PM Wars" / "Vibe Wars" to **Hallucination Inc.** in all UI copy and docs. Then renamed `pm_wars.py` → `hallucination_inc.py`. `docs/PM_Wars_PRD.md` still uses the old filename.
+- **2026-05-25** — Renamed the game from "Code Wars" / "PM Wars" / "Vibe Wars" to **Hallucination Inc.** in all UI copy and docs. Then renamed `pm_wars.py` → `hallucination_inc.py` and `docs/PM_Wars_PRD.md` → `docs/Hallucination_Inc_PRD.md`.

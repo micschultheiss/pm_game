@@ -31,7 +31,7 @@ The game runs entirely in the terminal with text prompts.
 pm_game/
 ├── hallucination_inc.py         # the game
 ├── docs/
-│   └── PM_Wars_PRD.md # product requirements doc
+│   └── Hallucination_Inc_PRD.md # product requirements doc
 └── README.md
 ```
 
