@@ -7,6 +7,7 @@ and sell them to enterprise and government clients before your runway burns out.
 
 import random
 import os
+import shutil
 
 # ─────────────────────────────────────────────
 # CONSTANTS
@@ -35,6 +36,9 @@ REFACTOR_SOFT_CAP     = 0.20    # max above refactor_q — cheap tokens have lim
 REFACTOR_DAYS_RATIO   = 0.60    # refactor takes this fraction of original craft_days
 
 TOKEN_TYPES = ["Code", "Reasoning", "Image", "Voice", "Video"]
+
+# 2-letter abbreviations used in the slim dashboard rows.
+TOKEN_ABBREV = {"Code": "Co", "Reasoning": "Re", "Image": "Im", "Voice": "Vo", "Video": "Vi"}
 
 # ─────────────────────────────────────────────
 # PROVIDERS — always on the map
@@ -703,7 +707,10 @@ def do_pay_debt(state, amount):
 # UI
 # ─────────────────────────────────────────────
 
-WIDTH = 64
+def _term_width():
+    """Live terminal width, clamped to keep tables readable."""
+    cols = shutil.get_terminal_size((80, 24)).columns
+    return max(64, min(cols, 120))
 
 # Only color is the action-menu hotkey letter (bright cyan / light blue).
 _CY  = "\033[96m"
@@ -717,7 +724,7 @@ def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
 def rule(char="─"):
-    print(char * WIDTH)
+    print(char * _term_width())
 
 def pause(label="Press ENTER to continue..."):
     try:
@@ -773,7 +780,7 @@ def show_location_panel(state):
     """One-line prices at the current provider, or current wants if at a client."""
     if state["location_type"] == "provider":
         prices = state["provider_prices"][state["location"]]
-        parts = [f"{t} ${prices[t]}" for t in TOKEN_TYPES]
+        parts = [f"{TOKEN_ABBREV[t]} ${prices[t]}" for t in TOKEN_TYPES]
         print(f"  Prices ($/M):  {' · '.join(parts)}")
     else:
         client = next((c for c in state["active_clients"]
@@ -793,7 +800,7 @@ def show_inventory_inline(state):
             data = state["tokens"].get(tok)
             if data and data["qty"] > 0:
                 avg_q = data["quality_sum"] / data["qty"]
-                parts.append(f"{tok} {data['qty']}M ({avg_q:.0%}q)")
+                parts.append(f"{TOKEN_ABBREV[tok]} {data['qty']}M ({avg_q:.0%}q)")
         print(f"  Tokens:        {' · '.join(parts) if parts else '(none)'}")
     else:
         print(f"  Tokens:        (none)")
@@ -812,13 +819,21 @@ def compute_market_demand(state):
                 demand[tok] = demand.get(tok, 0) + qty
     return demand
 
-def show_market_demand(state):
+def show_buy_needed(state):
+    """Tokens you still need to fulfil every open contract (demand minus held)."""
     demand = compute_market_demand(state)
     if not demand:
-        print("  Market demand:  (no open contracts)")
+        print("  Need to buy:    (no open contracts)")
         return
-    parts = [f"{tok} {demand[tok]}M" for tok in TOKEN_TYPES if demand.get(tok, 0) > 0]
-    print(f"  Market demand:  {' · '.join(parts)}")
+    gap = {}
+    for tok in TOKEN_TYPES:
+        held = state["tokens"].get(tok, {"qty": 0})["qty"]
+        gap[tok] = max(0, demand.get(tok, 0) - held)
+    if all(v == 0 for v in gap.values()):
+        print("  Need to buy:    nothing — you can build every open contract.")
+        return
+    parts = [f"{TOKEN_ABBREV[t]} {gap[t]}M" for t in TOKEN_TYPES if gap[t] > 0]
+    print(f"  Need to buy:    {' · '.join(parts)}")
 
 def show_open_contracts(state):
     """All client wants, sorted by payout descending."""
@@ -1169,7 +1184,7 @@ def game_loop(state):
         show_inventory_inline(state)
         print()
         rule()
-        show_market_demand(state)
+        show_buy_needed(state)
         rule()
         show_open_contracts(state)
         rule()
