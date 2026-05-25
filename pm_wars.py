@@ -705,6 +705,14 @@ def do_pay_debt(state, amount):
 
 WIDTH = 64
 
+# Only color is the action-menu hotkey letter (bright cyan / light blue).
+_CY  = "\033[96m"
+_BLD = "\033[1m"
+_RST = "\033[0m"
+
+def _key(letter, rest):
+    return f"[{_BLD}{_CY}{letter}{_RST}]{rest}"
+
 def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
@@ -722,22 +730,21 @@ def header(state):
     rule("═")
     loc_label = f"📍 {state['location']}"
     if state["location_type"] == "provider":
-        loc_label += f" ({PROVIDERS[state['location']]['desc']})"
+        prov = PROVIDERS[state["location"]]
+        loc_label += f" ({prov['desc']}, {prov['quality']:.0%})"
     else:
         for c in state["active_clients"]:
             if c["name"] == state["location"]:
                 loc_label += f" ({c['type']})"
                 break
-    print(f"  CODE WARS  |  Day {state['day']}/{MAX_DAYS}  |  {loc_label}")
-    rule("═")
-    nw = net_worth(state)
-    nw_sign = "+" if nw >= 0 else ""
-    print(f"  💰 Cash: ${state['cash']:>9,}   🎯 Net Worth: {nw_sign}${nw:,}")
-    print(f"  💳 Debt: ${state['debt']:>9,}   📦 Token Storage: {token_total(state)}M/{MAX_TOKENS}M")
+    print(f"  CODE WARS · Day {state['day']}/{MAX_DAYS} · {loc_label}")
+    crafting = "🔨 idle"
     if state["crafting"]:
         c = state["crafting"]
-        print(f"  🔨 Crafting: {c['name']} ({c['days_left']}d left, {c['quality']:.0%} quality)")
-    rule()
+        crafting = f"🔨 {c['name']} ({c['days_left']}d, {c['quality']:.0%})"
+    print(f"  💰 ${state['cash']:,}   💳 ${state['debt']:,}   "
+          f"📦 {token_total(state)}M/{MAX_TOKENS}M   {crafting}")
+    rule("═")
 
 def status_bar(state):
     """Compact one-liner re-stating cash/debt/day/storage right above the action prompt."""
@@ -761,6 +768,72 @@ def show_message(state):
         print(f"  ➤  {state['message']}")
         rule()
         state["message"] = None
+
+def show_location_panel(state):
+    """One-line prices at the current provider, or current wants if at a client."""
+    if state["location_type"] == "provider":
+        prices = state["provider_prices"][state["location"]]
+        parts = [f"{t} ${prices[t]}" for t in TOKEN_TYPES]
+        print(f"  Prices ($/M):  {' · '.join(parts)}")
+    else:
+        client = next((c for c in state["active_clients"]
+                       if c["name"] == state["location"]), None)
+        if not client or not client["current_wants"]:
+            print(f"  At {state['location']} — no open contracts here.")
+        else:
+            parts = [f"{p} (${i['budget']:,}, ≥{i['min_quality']:.0%})"
+                     for p, i in client["current_wants"].items()]
+            print(f"  At {state['location']}:  {' · '.join(parts)}")
+
+def show_inventory_inline(state):
+    """Tokens + products as one line each."""
+    if state["tokens"]:
+        parts = []
+        for tok in TOKEN_TYPES:
+            data = state["tokens"].get(tok)
+            if data and data["qty"] > 0:
+                avg_q = data["quality_sum"] / data["qty"]
+                parts.append(f"{tok} {data['qty']}M ({avg_q:.0%}q)")
+        print(f"  Tokens:        {' · '.join(parts) if parts else '(none)'}")
+    else:
+        print(f"  Tokens:        (none)")
+    if state["products"]:
+        parts = [f"{p['name']} ({p['quality']:.0%})" for p in state["products"]]
+        print(f"  Products:      {' · '.join(parts)}")
+    else:
+        print(f"  Products:      (none)")
+
+def compute_market_demand(state):
+    """Sum recipe tokens required to fulfil every open client contract."""
+    demand = {}
+    for client in state["active_clients"]:
+        for prod_name in client["current_wants"]:
+            for tok, qty in PRODUCTS[prod_name]["recipe"].items():
+                demand[tok] = demand.get(tok, 0) + qty
+    return demand
+
+def show_market_demand(state):
+    demand = compute_market_demand(state)
+    if not demand:
+        print("  Market demand:  (no open contracts)")
+        return
+    parts = [f"{tok} {demand[tok]}M" for tok in TOKEN_TYPES if demand.get(tok, 0) > 0]
+    print(f"  Market demand:  {' · '.join(parts)}")
+
+def show_open_contracts(state):
+    """All client wants, sorted by payout descending."""
+    rows = []
+    for client in state["active_clients"]:
+        tag = "GOV" if client["type"] == "Government" else "ENT"
+        for prod_name, info in client["current_wants"].items():
+            rows.append((info["budget"], tag, client["name"], prod_name, info["min_quality"]))
+    rows.sort(reverse=True, key=lambda r: r[0])
+    if not rows:
+        print("  Open contracts: (none right now)")
+        return
+    print("  Open contracts (by payout):")
+    for budget, tag, name, prod, minq in rows:
+        print(f"    [{tag}] {name:<22} {prod:<26} ${budget:>7,}  ≥{minq:.0%}")
 
 def show_provider(state):
     prov = state["location"]
@@ -1087,20 +1160,30 @@ def game_loop(state):
 
         header(state)
         show_event(state)
+        if state["message"]:
+            print(f"  ➤  {state['message']}\n")
+            state["message"] = None
 
-        if state["location_type"] == "provider":
-            show_provider(state)
-        else:
-            show_client_offers(state)
-
-        show_tokens(state)
-        show_products(state)
-        show_craftable(state)
-        show_all_clients(state)
-        show_message(state)
-        status_bar(state)
-        actions = "[B]uy" if state["location_type"] == "provider" else "[S]ell"
-        print(f"  {actions}  [C]raft  [R]efactor  [T]ravel  [W]ait  [P]ay  [Q]uit")
+        print()
+        show_location_panel(state)
+        show_inventory_inline(state)
+        print()
+        rule()
+        show_market_demand(state)
+        rule()
+        show_open_contracts(state)
+        rule()
+        primary = _key("B", "uy") if state["location_type"] == "provider" else _key("S", "ell")
+        menu = "  ".join([
+            primary,
+            _key("C", "raft"),
+            _key("R", "efactor"),
+            _key("T", "ravel"),
+            _key("W", "ait"),
+            _key("P", "ay"),
+            _key("Q", "uit"),
+        ])
+        print(f"  {menu}")
         rule()
         try:
             cmd = input("  > ").strip().lower()
