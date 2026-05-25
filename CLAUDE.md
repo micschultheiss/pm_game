@@ -6,15 +6,15 @@ Context for Claude Code when working in this repo.
 
 A single-file Python terminal game (`pm_wars.py`, banner title "VIBE WARS") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
 
-See [README.md](README.md) for how to run it and [reqs/PM_Wars_PRD.md](reqs/PM_Wars_PRD.md) for the full product spec.
+See [README.md](README.md) for how to run it and [docs/PM_Wars_PRD.md](docs/PM_Wars_PRD.md) for the full product spec.
 
 ## Layout
 
 ```
 pm_wars.py            # the entire game — one file, stdlib only
 simulate.py           # headless runner used to balance/regression-test the loop
-reqs/PM_Wars_PRD.md   # canonical product requirements
-reqs/TODO.md          # working backlog
+TODO.md               # working backlog
+docs/PM_Wars_PRD.md   # canonical product requirements
 docs/                 # architecture, ADRs, game design notes
 ```
 
@@ -42,3 +42,8 @@ Use `simulate.py` to run headless games before/after a change. A change that shi
 - Networking, persistence, save files, multiplayer.
 - GUI / web frontend.
 - Adding dependencies.
+
+## Git workflow
+- After completing any task or subtask, commit with a conventional commit message
+- Push to the current branch immediately after committing
+- Do not wait to be asked

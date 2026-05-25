@@ -30,7 +30,7 @@ The game runs entirely in the terminal with text prompts.
 ```
 pm_game/
 ├── pm_wars.py         # the game
-├── reqs/
+├── docs/
 │   └── PM_Wars_PRD.md # product requirements doc
 └── README.md
 ```

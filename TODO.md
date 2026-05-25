@@ -1,6 +1,6 @@
 # TODO
 
-Working backlog. Active items live here; longer-form requirements live in [reqs/PM_Wars_PRD.md](reqs/PM_Wars_PRD.md).
+Working backlog. Active items live here; longer-form requirements live in [docs/PM_Wars_PRD.md](docs/PM_Wars_PRD.md).
 
 ## Now
 

@@ -1,6 +1,6 @@
 # Notes
 
-Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.md); long-form spec lives in [reqs/PM_Wars_PRD.md](../reqs/PM_Wars_PRD.md).
+Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.md); long-form spec lives in [docs/PM_Wars_PRD.md](../docs/PM_Wars_PRD.md).
 
 ## Open questions
 
