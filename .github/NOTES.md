@@ -19,3 +19,7 @@ Loose working notes for the project. Active backlog lives in [TODO.md](../TODO.m
 - "Sandbox mode" with debt off and infinite days, for poking at the economy.
 - Per-provider event affinities (Anthropic-flavored events vs. Meta-flavored).
 - A daily news ticker that surfaces multiple small events instead of one headline.
+
+## Changelog
+
+- **2026-05-25** — Renamed the game from "Code Wars" / "PM Wars" / "Vibe Wars" to **Hallucination Inc.** in all UI copy and docs. Filenames (`pm_wars.py`, `docs/PM_Wars_PRD.md`) intentionally untouched.
