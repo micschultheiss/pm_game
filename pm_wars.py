@@ -753,9 +753,9 @@ def show_market_demand(state):
     print(f"  Market demand:  {' · '.join(parts)}")
 
 def _recipe_short(product_name):
-    """Compact recipe string using 2-letter token codes, e.g. '120Re · 60Co · 20Im'."""
+    """Compact recipe string in canonical token order, e.g. '60Co · 120Re · 20Im'."""
     recipe = PRODUCTS[product_name]["recipe"]
-    return " · ".join(f"{n}{TOKEN_ABBREV[t]}" for t, n in recipe.items())
+    return " · ".join(f"{recipe[t]}{TOKEN_ABBREV[t]}" for t in TOKEN_TYPES if t in recipe)
 
 def show_open_contracts(state):
     """All client wants, sorted by payout descending. Shows the recipe to build each."""
