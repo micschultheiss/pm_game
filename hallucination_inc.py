@@ -1221,26 +1221,43 @@ def main():
     print("  HALLUCINATION INC. — Where AI Meets Enterprise")
     rule("═")
     print("""
-  You're a Senior PM hustling AI products.
-  Travel to LLM providers to work on partnership deals and 
-  buy tokens at a discount (in millions).
-  Craft enterprise SaaS products from those tokens, then
-  pitch and sell them to government and corporate clients.
+  AI is eating your lunch. You've just been laid off from your cushy product
+  management gig at one of the big tech giants — and now you're out to cash
+  in on the SaaSocalypse. Nobody has cracked how to ship enterprise-grade
+  software with the new AI coding tools yet. That's where you come in.
 
-  Buy cheap tokens, craft high-quality products,
-  and sell before your debt eats you alive.
+  $100,000 in debt. 5% interest per day. 30 days to turn it into a real
+  business.
 
-  Starting cash: $100K. Starting debt: $100K (compounding 5%/day).
 
-  - Travel/sales trip costs $30K + 1 day (flights, decks, dinners…)
-  - Crafting takes 3-6 days (50-200M tokens per build)
-  - Token storage capped at 500M
-  - Clients rotate every 3-7 days
-  - Token quality (model maturity) gates client sales
-  - Cap on quality bonus — over-spec doesn't pay extra
-  - [L]end: borrow up to 30% of your finished products' base value
+  THE BASICS (in plain English)
+  • Tokens are the fuel AI runs on. You buy them by the million from AI
+    providers — the big labs like Anthropic, OpenAI, and Google. Prices
+    move daily, and pricier providers ship higher-quality output.
+  • Products are finished AI SaaS solutions — a customer-support bot, a
+    compliance dashboard, and so on. You build each one from a recipe of
+    tokens, and a build takes a few days. Your pitch to customers:
+    reliable enterprise software, shipped in days.
+  • Clients are the companies and government agencies that buy your
+    products. Each pays a fixed budget — but only if your product clears
+    their minimum quality bar.
 
-  You have 30 days to clear the debt and build a real business.
+
+  YOUR JOB
+  Buy tokens cheap  →  build quality products  →  sell them for a profit,
+  all before your debt eats you alive.
+
+
+  GOOD TO KNOW
+  • You start with $100,000 cash and $100,000 of debt that grows 5% a day.
+  • A sales trip to any provider or client costs $30,000 and burns a day.
+  • Builds take 3-6 days and 50-200 million tokens; you can store 500M.
+  • Available clients rotate every few days, so grab good deals fast.
+  • Beating a client's quality bar pays a little more — but only up to a
+    point. Tokens and finished products also drift out of date and lose
+    quality over time.
+
+  30 days on the clock. Good luck.
 """)
     rule()
     input("  Press ENTER to start...")
