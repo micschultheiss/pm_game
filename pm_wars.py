@@ -36,6 +36,8 @@ REFACTOR_SOFT_CAP     = 0.20    # max above refactor_q — cheap tokens have lim
 REFACTOR_DAYS_RATIO   = 0.60    # refactor takes this fraction of original craft_days
 
 TOKEN_TYPES = ["Code", "Reasoning", "Image", "Voice", "Video"]
+# 2-letter codes used in compact recipe displays (e.g. "120Re · 60Co · 20Im").
+TOKEN_ABBREV = {"Code": "Co", "Reasoning": "Re", "Image": "Im", "Voice": "Vo", "Video": "Vi"}
 
 # ─────────────────────────────────────────────
 # PROVIDERS — always on the map
@@ -824,8 +826,13 @@ def show_market_demand(state):
     parts = [f"{tok} {demand[tok]}M" for tok in TOKEN_TYPES if demand.get(tok, 0) > 0]
     print(f"  Market demand:  {' · '.join(parts)}")
 
+def _recipe_short(product_name):
+    """Compact recipe string using 2-letter token codes, e.g. '120Re · 60Co · 20Im'."""
+    recipe = PRODUCTS[product_name]["recipe"]
+    return " · ".join(f"{n}{TOKEN_ABBREV[t]}" for t, n in recipe.items())
+
 def show_open_contracts(state):
-    """All client wants, sorted by payout descending."""
+    """All client wants, sorted by payout descending. Shows the recipe to build each."""
     rows = []
     for client in state["active_clients"]:
         tag = "GOV" if client["type"] == "Government" else "ENT"
@@ -837,7 +844,8 @@ def show_open_contracts(state):
         return
     print("  Open contracts (by payout):")
     for budget, tag, name, prod, minq in rows:
-        print(f"    [{tag}] {name:<22} {prod:<26} ${budget:>7,}  ≥{minq:.0%}")
+        recipe = _recipe_short(prod)
+        print(f"    [{tag}] {name:<22} {prod:<24} {recipe:<24} ${budget:>7,}  ≥{minq:.0%}")
 
 def show_provider(state):
     prov = state["location"]
