@@ -456,9 +456,11 @@ def _recipe_size(product_name):
 
 def advance_days(state, days):
     """Advance time: debt interest, craft progress + decay, product decay, events, drift, rotation."""
+    event_log = []  # accumulate notes across the whole advance so multi-day waits don't lose them
     for _ in range(days):
         state["day"] += 1
         decay_notes = []
+        per_day_notes = []
 
         # Debt interest
         if state["debt"] > 0:
@@ -508,10 +510,9 @@ def advance_days(state, days):
         if random.random() < 0.30:
             event = random.choice(EVENTS)
             event["fn"](state)
-            state["last_event"] = event["msg"]
+            per_day_notes.append(event["msg"])
         elif decay_notes:
-            # Surface decay if no other event already grabbed last_event
-            state["last_event"] = "📉 Model deprecation: " + "; ".join(decay_notes[:2])
+            per_day_notes.append("📉 Model deprecation: " + "; ".join(decay_notes[:2]))
 
         # Daily client drift
         drift_clients(state)
@@ -519,15 +520,25 @@ def advance_days(state, days):
         # Partial roster rotation
         if state["day"] >= state["next_rotation"]:
             replaced = partial_rotate_clients(state)
-            if replaced and not state["last_event"]:
+            if replaced:
                 names = ", ".join(replaced)
-                state["last_event"] = f"📋 Roster shift — {names} dropped, new clients arrived."
+                per_day_notes.append(f"📋 Roster shift — {names} dropped, new clients arrived.")
+
+        if per_day_notes:
+            prefix = f"Day {state['day']}: " if days > 1 else ""
+            for note in per_day_notes:
+                event_log.append(prefix + note)
+
+    if event_log:
+        state["last_event"] = "\n  ⚡ ".join(event_log)
 
 # ─────────────────────────────────────────────
 # ACTIONS
 # ─────────────────────────────────────────────
 
 def do_buy_tokens(state, token_type, qty):
+    if qty < 1:
+        return "Quantity must be at least 1M."
     prov = state["location"]
     price = state["provider_prices"][prov][token_type]
     cost = price * qty
@@ -604,7 +615,7 @@ def do_travel(state, dest_name, dest_type):
     if dest_name == state["location"]:
         return "You're already there."
     if state["cash"] < TRAVEL_COST:
-        return f"Need ${TRAVEL_COST} travel budget."
+        return f"Need ${TRAVEL_COST:,} travel budget (have ${state['cash']:,})."
     state["cash"] -= TRAVEL_COST
     state["location"] = dest_name
     state["location_type"] = dest_type
@@ -838,17 +849,26 @@ def show_all_clients(state):
         wants_str = ", ".join(c["current_wants"].keys()) if c["current_wants"] else "(satisfied)"
         print(f"    [{tag}] {c['name']:<25} wants: {wants_str}")
 
+# Sentinel returned by prompt_int when the user typed something that isn't a number.
+# Distinct from None (empty input / EOF / Ctrl-C = "cancel") so menus can give feedback.
+INVALID_INPUT = object()
+
 def prompt_int(label):
     try:
-        val = input(f"  {label}: ").strip()
-        return int(val)
-    except (ValueError, EOFError):
+        raw = input(f"  {label}: ").strip()
+    except (EOFError, KeyboardInterrupt):
         return None
+    if not raw:
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        return INVALID_INPUT
 
 def prompt_str(label):
     try:
         return input(f"  {label}: ").strip()
-    except EOFError:
+    except (EOFError, KeyboardInterrupt):
         return ""
 
 # ─────────────────────────────────────────────
@@ -863,15 +883,23 @@ def menu_buy(state):
     print()
     status_bar(state)
     choice = prompt_int(f"Token # (1-{len(TOKEN_TYPES)}, or 0 to cancel)")
+    if choice is INVALID_INPUT:
+        state["message"] = "Please enter a number for the token choice."
+        return
     if choice is None or choice == 0:
         return
     if not (1 <= choice <= len(TOKEN_TYPES)):
-        state["message"] = "Invalid choice."
+        state["message"] = f"Pick a token between 1 and {len(TOKEN_TYPES)}."
         return
     token = TOKEN_TYPES[choice - 1]
-    qty = prompt_int("Quantity (millions)")
-    if not qty or qty < 1:
-        state["message"] = "Invalid quantity."
+    qty = prompt_int(f"Quantity of {token} in millions (0 to cancel)")
+    if qty is INVALID_INPUT:
+        state["message"] = "Please enter a number for the quantity."
+        return
+    if qty is None or qty == 0:
+        return
+    if qty < 1:
+        state["message"] = "Quantity must be a positive number of millions."
         return
     state["message"] = do_buy_tokens(state, token, qty)
 
@@ -900,9 +928,18 @@ def menu_sell(state):
     print()
     status_bar(state)
     pidx = prompt_int(f"Product # to sell (1-{len(state['products'])}, or 0 to cancel)")
+    if pidx is INVALID_INPUT:
+        state["message"] = "Please enter a number for the product choice."
+        return
     if pidx is None or pidx == 0:
         return
-    state["message"] = do_sell_product(state, pidx - 1, client_idx)
+    if not (1 <= pidx <= len(state["products"])):
+        state["message"] = f"Pick a product between 1 and {len(state['products'])}."
+        return
+    result = do_sell_product(state, pidx - 1, client_idx)
+    state["message"] = result
+    # Show the outcome inline so the player sees it before the screen redraws.
+    print(f"\n  ➤  {result}")
     pause()
 
 def menu_craft(state):
@@ -913,10 +950,13 @@ def menu_craft(state):
     show_craftable(state)
     print()
     choice = prompt_int(f"Product # to craft (1-{len(PRODUCTS)}, or 0 to cancel)")
+    if choice is INVALID_INPUT:
+        state["message"] = "Please enter a number for the product choice."
+        return
     if choice is None or choice == 0:
         return
     if not (1 <= choice <= len(PRODUCTS)):
-        state["message"] = "Invalid choice."
+        state["message"] = f"Pick a product between 1 and {len(PRODUCTS)}."
         return
     product_name = list(PRODUCTS.keys())[choice - 1]
     state["message"] = do_craft(state, product_name)
@@ -939,12 +979,15 @@ def menu_travel(state):
             tag = "GOV" if c["type"] == "Government" else "ENT"
             wants = ", ".join(c["current_wants"].keys()) if c["current_wants"] else "(satisfied)"
             print(f"    {idx}. [{tag}] {c['name']}  — wants: {wants}")
-    print(f"\n  (Travel costs ${TRAVEL_COST} + 1 day)\n")
+    print(f"\n  (Travel costs ${TRAVEL_COST:,} + 1 day)\n")
     choice = prompt_int(f"Choose 1-{len(destinations)} (or 0 to cancel)")
+    if choice is INVALID_INPUT:
+        state["message"] = "Please enter a number for the destination."
+        return
     if choice is None or choice == 0:
         return
     if not (1 <= choice <= len(destinations)):
-        state["message"] = "Invalid choice."
+        state["message"] = f"Pick a destination between 1 and {len(destinations)}."
         return
     dest_name, dest_type = destinations[choice - 1]
     err = do_travel(state, dest_name, dest_type)
@@ -956,9 +999,15 @@ def menu_travel(state):
 
 def menu_wait(state):
     days = prompt_int("Days to wait (1-5, or 0 to cancel)")
-    if not days or days == 0:
+    if days is INVALID_INPUT:
+        state["message"] = "Please enter a number of days."
         return
-    days = max(1, min(5, days))
+    if days is None or days == 0:
+        return
+    if days < 1:
+        state["message"] = "Days must be a positive number."
+        return
+    days = min(5, days)
     advance_days(state, days)
     if not state["message"]:
         state["message"] = f"Waited {days} day(s)."
@@ -969,7 +1018,10 @@ def menu_pay_debt(state):
         state["message"] = "You're debt-free!"
         return
     amount = prompt_int("Amount to pay (0 to cancel)")
-    if not amount or amount == 0:
+    if amount is INVALID_INPUT:
+        state["message"] = "Please enter a dollar amount."
+        return
+    if amount is None or amount == 0:
         return
     state["message"] = do_pay_debt(state, amount)
 
