@@ -14,7 +14,7 @@ import shutil
 # ─────────────────────────────────────────────
 
 MAX_DAYS              = 30
-STARTING_CASH         = 35_000
+STARTING_CASH         = 50_000
 STARTING_DEBT         = 300_000
 DEBT_INTEREST         = 0.02    # 2% per day on outstanding debt
 TRAVEL_COST           = 30_000  # biz dev / sales travel — pitch decks aren't free
