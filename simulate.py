@@ -278,7 +278,7 @@ def policy_planner(state):
     Planner: looks at open contracts, picks the single best target by expected
     margin, sources only the tokens that contract needs from a quality-matching
     provider, crafts, travels, sells. Pays down debt with surplus cash to slow
-    the 2%/day bleed.
+    the debt interest bleed.
     """
     # 1. Sell finished product if at the right client.
     if state["location_type"] == "client":
@@ -314,7 +314,7 @@ def policy_planner(state):
 
     # 4. If crafting in progress: travel toward a buyer for what we're building,
     #    so we're parked at a client when it lands. Then wait. Pay debt with
-    #    surplus cash to slow the 2%/day bleed.
+    #    surplus cash to slow the debt interest bleed.
     if state["crafting"]:
         building = state["crafting"]["name"]
         days_left = state["crafting"]["days_left"]

@@ -16,11 +16,13 @@ import shutil
 MAX_DAYS              = 30
 STARTING_CASH         = 100_000
 STARTING_DEBT         = 100_000
-DEBT_INTEREST         = 0.05    # 5% per day on outstanding debt
+DEBT_INTEREST         = 0.03    # 3% per day on outstanding debt
+DEBT_FREE_BONUS       = 75_000  # bonus to net worth at game end if debt is fully paid
 COLLATERAL_LTV        = 0.30    # max loan as % of finished product base value
 TRAVEL_COST           = 30_000  # biz dev / sales travel — pitch decks aren't free
 MAX_TOKENS            = 500     # max storage in millions of tokens
-QUALITY_BONUS_CAP     = 1.2     # max premium for over-spec quality
+QUALITY_BONUS_CAP     = 1.5     # max premium for over-spec quality
+ACTIVE_CLIENT_COUNT   = 6       # number of clients live on the board at once
 CLIENT_ROTATION_MIN   = 3       # min days between partial rotations
 CLIENT_ROTATION_MAX   = 7       # max days between partial rotations
 CLIENT_DRIFT_CHANCE   = 0.10    # daily chance per client to shift a budget
@@ -76,8 +78,8 @@ PRODUCTS = {
     # base_value = enterprise SaaS contract size, in dollars.
     "AI Customer Support": {
         "recipe":     {"Code": 50, "Voice": 30},
-        "craft_days": 3,
-        "base_value": 70_000,
+        "craft_days": 2,
+        "base_value": 85_000,
     },
     "Contract Analyzer": {
         "recipe":     {"Reasoning": 80, "Code": 40},
@@ -85,14 +87,14 @@ PRODUCTS = {
         "base_value": 110_000,
     },
     "Brand Asset Generator": {
-        "recipe":     {"Image": 100, "Code": 20},
-        "craft_days": 3,
-        "base_value": 60_000,
+        "recipe":     {"Image": 60, "Code": 10},
+        "craft_days": 2,
+        "base_value": 55_000,
     },
     "Compliance Dashboard": {
-        "recipe":     {"Reasoning": 120, "Code": 60, "Image": 20},
+        "recipe":     {"Reasoning": 130, "Code": 70, "Image": 25},
         "craft_days": 5,
-        "base_value": 240_000,
+        "base_value": 200_000,
     },
     "Training Video Platform": {
         "recipe":     {"Video": 100, "Voice": 60, "Code": 30},
@@ -106,8 +108,8 @@ PRODUCTS = {
     },
     "Marketing Copilot": {
         "recipe":     {"Code": 60, "Image": 60, "Reasoning": 30},
-        "craft_days": 4,
-        "base_value": 90_000,
+        "craft_days": 3,
+        "base_value": 95_000,
     },
 }
 
@@ -185,6 +187,29 @@ ALL_CLIENTS = [
         "wants": ["AI Security Scanner", "Contract Analyzer"],
         "budget_mult": (0.9, 1.3),
         "min_quality": 0.75,
+    },
+    # Mid-tier buyers — lower quality bars, modest budgets. Make cheap providers
+    # (Meta, Mistral, Google) actually useful for a volume-first strategy.
+    {
+        "name": "TechCrunch Startups",
+        "type": "Enterprise",
+        "wants": ["AI Customer Support", "Marketing Copilot", "Brand Asset Generator"],
+        "budget_mult": (0.9, 1.4),
+        "min_quality": 0.50,
+    },
+    {
+        "name": "Local Gov Council",
+        "type": "Government",
+        "wants": ["AI Customer Support", "Training Video Platform", "Brand Asset Generator"],
+        "budget_mult": (0.8, 1.2),
+        "min_quality": 0.55,
+    },
+    {
+        "name": "Etsy",
+        "type": "Enterprise",
+        "wants": ["Brand Asset Generator", "Marketing Copilot", "AI Customer Support"],
+        "budget_mult": (0.7, 1.3),
+        "min_quality": 0.55,
     },
 ]
 
@@ -323,7 +348,16 @@ EVENTS = [
 # GAME STATE
 # ─────────────────────────────────────────────
 
-def new_game():
+def new_game(bundle=None, specialty_provider=None):
+    """Initialize fresh game state.
+
+    bundle: one of None, 'yc', 'bootstrap', 'specialty'. Applies a starting
+    perk/penalty so each run opens differently.
+        yc        — +$50K cash but burn 5 days (demo prep)
+        bootstrap — +$50K cash AND +$50K debt (founder loan)
+        specialty — 25% lifetime discount at the chosen provider (price-locked)
+    specialty_provider: required when bundle='specialty'.
+    """
     state = {
         "cash":             STARTING_CASH,
         "debt":             STARTING_DEBT,
@@ -339,12 +373,38 @@ def new_game():
         "last_event":       None,
         "message":          None,
         "next_rotation":    0,
+        "bundle":           bundle,
+        "specialty_provider": specialty_provider if bundle == "specialty" else None,
+        "specialty_discount": 0.75 if bundle == "specialty" else 1.0,
     }
     state["location"] = list(PROVIDERS.keys())[0]
     state["location_type"] = "provider"
     refresh_provider_prices(state)
     rotate_clients(state)
+
+    if bundle == "yc":
+        state["cash"] += 50_000
+        advance_days(state, 5)
+    elif bundle == "bootstrap":
+        state["cash"] += 50_000
+        state["debt"] += 50_000
+    elif bundle == "specialty":
+        # Lock in the discount at the chosen provider for all current and future
+        # price refreshes by re-applying in refresh_provider_prices via the state flag.
+        _apply_specialty_discount(state)
     return state
+
+
+def _apply_specialty_discount(state):
+    """Apply lifetime 25% discount at the specialty provider to current prices."""
+    prov = state.get("specialty_provider")
+    if not prov or prov not in state["provider_prices"]:
+        return
+    discount = state.get("specialty_discount", 1.0)
+    for tok in TOKEN_TYPES:
+        state["provider_prices"][prov][tok] = max(
+            1, int(state["provider_prices"][prov][tok] * discount)
+        )
 
 def _schedule_next_rotation(state):
     state["next_rotation"] = state["day"] + random.randint(CLIENT_ROTATION_MIN, CLIENT_ROTATION_MAX)
@@ -384,8 +444,9 @@ def _find_template(name):
     return None
 
 def rotate_clients(state):
-    """Pick 4 random clients fresh (used at game start)."""
-    chosen = random.sample(ALL_CLIENTS, 4)
+    """Pick the active client roster fresh (used at game start)."""
+    n = min(ACTIVE_CLIENT_COUNT, len(ALL_CLIENTS))
+    chosen = random.sample(ALL_CLIENTS, n)
     state["active_clients"] = [_make_client_from_template(t) for t in chosen]
     _schedule_next_rotation(state)
 
@@ -484,7 +545,7 @@ def advance_days(state, days):
             state["crafting"]["days_left"] -= 1
             if state["crafting"]["days_left"] <= 0:
                 # Final variance on completion
-                final_q = state["crafting"]["quality"] * random.uniform(0.92, 1.05)
+                final_q = state["crafting"]["quality"] * random.uniform(0.96, 1.04)
                 final_q = max(0.30, min(1.0, final_q))
                 finished = {
                     "name":    state["crafting"]["name"],
@@ -627,6 +688,8 @@ def do_travel(state, dest_name, dest_type):
         for token, base in prov["base_prices"].items():
             noise = random.uniform(0.7, 1.4)
             state["provider_prices"][dest_name][token] = max(5, int(base * noise))
+        if state.get("specialty_provider") == dest_name:
+            _apply_specialty_discount(state)
     return True, f"Travelled to {dest_name}."
 
 def borrow_limit(state):
@@ -1096,18 +1159,23 @@ def end_screen(state):
     print("  GAME OVER — Performance Review")
     rule("═")
     nw = net_worth(state)
+    debt_free_bonus = DEBT_FREE_BONUS if state["debt"] == 0 else 0
+    final_score = nw + debt_free_bonus
     print(f"\n  Cash:        ${state['cash']:>10,}")
     print(f"  Debt:        ${state['debt']:>10,}")
     print(f"  Net Worth:   ${nw:>10,}")
+    if debt_free_bonus:
+        print(f"  Debt-free bonus: +${debt_free_bonus:,}")
+        print(f"  Final Score: ${final_score:>10,}")
     print(f"  Products built: {len(state['products'])} unsold\n")
     rule()
-    if nw >= 1_000_000:
+    if final_score >= 1_000_000:
         grade = "🏆 UNICORN — You disrupted the market. IPO incoming."
-    elif nw >= 500_000:
+    elif final_score >= 500_000:
         grade = "🌟 SERIES A — Strong traction. Investors are lining up."
-    elif nw >= 100_000:
+    elif final_score >= 100_000:
         grade = "✅ RAMEN PROFITABLE — Scrappy, but you made it work."
-    elif nw >= 0:
+    elif final_score >= 0:
         grade = "😅 BROKE EVEN — The hallucinations were mid."
     else:
         grade = "💀 BANKRUPT — Turns out it was all hallucinated."
@@ -1240,7 +1308,7 @@ def main():
   {b}SaaSocalypse{r}. Nobody has cracked enterprise-grade software with the new
   AI coding tools yet. That's where you come in.
 
-  {b}$100,000 in debt{r}. {b}5% interest per day{r}. {b}30 days{r} to turn it into a real
+  {b}$100,000 in debt{r}. {b}3% interest per day{r}. {b}30 days{r} to turn it into a real
   business.
 
 
@@ -1252,8 +1320,8 @@ def main():
     dashboard, and so on. You build each from a recipe of tokens over a
     few days. Your pitch: reliable enterprise software, shipped in days.
   • {b}Clients{r} are the companies and government agencies that buy your
-    products. Each pays a fixed budget — but only if your product clears
-    their minimum quality bar.
+    products. {ACTIVE_CLIENT_COUNT} are live at any time. Each pays a fixed budget
+    — but only if your product clears their minimum quality bar.
 
 
   YOUR JOB
@@ -1262,19 +1330,85 @@ def main():
 
 
   GOOD TO KNOW
-  • You start with {b}$100K cash{r} and {b}$100K debt{r} that grows {b}5% a day{r}.
+  • You start with {b}$100K cash{r} and {b}$100K debt{r} that grows {b}3% a day{r}.
+    Pay it off before day 30 for a {b}+$75K{r} debt-free bonus.
   • A sales trip costs {b}$30K{r} and burns a day.
-  • Builds take {b}3-6 days{r} and {b}50-200M tokens{r}; storage caps at {b}500M{r}.
-  • Available clients rotate every few days — grab good deals fast.
-  • Beating a client's quality bar pays a little more, up to a point.
+  • Builds take {b}2-6 days{r} and {b}50-225M tokens{r}; storage caps at {b}500M{r}.
+  • {ACTIVE_CLIENT_COUNT} clients live at once — they rotate every few days. Grab good deals fast.
+  • Beating a client's quality bar pays up to {b}1.5×{r} the budget.
     Tokens and finished products lose quality as they age.
 
   {b}30 days on the clock.{r} Good luck.
 """)
     rule()
-    input("  Press ENTER to start...")
-    state = new_game()
+    input("  Press ENTER to choose your opening move...")
+    bundle, specialty = _choose_starting_bundle()
+    state = new_game(bundle=bundle, specialty_provider=specialty)
     game_loop(state)
+
+
+def _choose_starting_bundle():
+    """Prompt the player to pick a starting bundle. Returns (bundle, specialty_provider)."""
+    clear()
+    rule("═")
+    print(f"  {_BLD}YOUR OPENING MOVE{_RST}")
+    rule("═")
+    b = _BLD
+    r = _RST
+    print(f"""
+  Before Day 1, pick how you want to start. Each option is a different bet:
+
+  {_key('1', f' {b}YC Demo Day{r}')}
+       +$50K cash, but you burn 5 days on pitch prep. Start at Day 6.
+       Best if you back yourself to move fast with extra runway.
+
+  {_key('2', f' {b}Bootstrap Loan{r}')}
+       +$50K cash and +$50K debt. No time lost.
+       Best if you want firepower now and trust you can outrun the interest.
+
+  {_key('3', f' {b}Specialty Partnership{r}')}
+       Lock in a 25% discount at one provider of your choice — forever.
+       Best if you have a strategy that leans on one supplier hard.
+
+  {_key('4', f' {b}Skip{r}')} — start clean, no perks, no penalties.
+""")
+    rule()
+    while True:
+        try:
+            cmd = input("  > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return None, None
+        if cmd == "1":
+            return "yc", None
+        if cmd == "2":
+            return "bootstrap", None
+        if cmd == "3":
+            return "specialty", _choose_specialty_provider()
+        if cmd == "4" or cmd == "":
+            return None, None
+        print("  Pick 1, 2, 3, or 4.")
+
+
+def _choose_specialty_provider():
+    """Prompt for which provider gets the 25% discount."""
+    print()
+    print(f"  Which provider gets your 25% lifetime discount?")
+    provs = list(PROVIDERS.keys())
+    for i, p in enumerate(provs, 1):
+        q = PROVIDERS[p]["quality"]
+        print(f"    {i}. {p:<12} ({PROVIDERS[p]['desc']}, quality {q:.0%})")
+    while True:
+        try:
+            cmd = input("  > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return provs[0]
+        try:
+            idx = int(cmd)
+            if 1 <= idx <= len(provs):
+                return provs[idx - 1]
+        except ValueError:
+            pass
+        print(f"  Pick 1-{len(provs)}.")
 
 
 if __name__ == "__main__":
