@@ -92,9 +92,9 @@ PRODUCTS = {
         "base_value": 55_000,
     },
     "Compliance Dashboard": {
-        "recipe":     {"Reasoning": 130, "Code": 70, "Image": 25},
-        "craft_days": 5,
-        "base_value": 200_000,
+        "recipe":     {"Reasoning": 150, "Code": 80, "Image": 30},
+        "craft_days": 6,
+        "base_value": 150_000,
     },
     "Training Video Platform": {
         "recipe":     {"Video": 100, "Voice": 60, "Code": 30},
@@ -188,27 +188,34 @@ ALL_CLIENTS = [
         "budget_mult": (0.9, 1.3),
         "min_quality": 0.75,
     },
-    # Mid-tier buyers — lower quality bars, modest budgets. Make cheap providers
-    # (Meta, Mistral, Google) actually useful for a volume-first strategy.
+    # SMB & mid-tier buyers — lower quality bars but wider budget swings so
+    # deals are sometimes a steal and sometimes a chore. Each has a distinct
+    # specialty so the cheap-provider strategy isn't a single uniform path.
     {
-        "name": "TechCrunch Startups",
+        # Productivity-tools SMB. Loves anything that saves an internal team
+        # time; pays for it. Decent payouts but never lavish.
+        "name": "Basecamp",
         "type": "Enterprise",
-        "wants": ["AI Customer Support", "Marketing Copilot", "Brand Asset Generator"],
-        "budget_mult": (0.9, 1.4),
+        "wants": ["Marketing Copilot", "AI Customer Support", "Contract Analyzer"],
+        "budget_mult": (1.0, 1.5),
         "min_quality": 0.50,
     },
     {
+        # Public-sector mid-tier. Slow and bureaucratic — wide payout variance
+        # because every council negotiates differently.
         "name": "Local Gov Council",
         "type": "Government",
         "wants": ["AI Customer Support", "Training Video Platform", "Brand Asset Generator"],
-        "budget_mult": (0.8, 1.2),
+        "budget_mult": (0.8, 1.6),
         "min_quality": 0.55,
     },
     {
+        # Marketplace serving makers — lives or dies by brand assets. Pays
+        # premium for visual stuff, scraps for everything else.
         "name": "Etsy",
         "type": "Enterprise",
         "wants": ["Brand Asset Generator", "Marketing Copilot", "AI Customer Support"],
-        "budget_mult": (0.7, 1.3),
+        "budget_mult": (1.1, 1.8),
         "min_quality": 0.55,
     },
 ]
@@ -348,16 +355,7 @@ EVENTS = [
 # GAME STATE
 # ─────────────────────────────────────────────
 
-def new_game(bundle=None, specialty_provider=None):
-    """Initialize fresh game state.
-
-    bundle: one of None, 'yc', 'bootstrap', 'specialty'. Applies a starting
-    perk/penalty so each run opens differently.
-        yc        — +$50K cash but burn 5 days (demo prep)
-        bootstrap — +$50K cash AND +$50K debt (founder loan)
-        specialty — 25% lifetime discount at the chosen provider (price-locked)
-    specialty_provider: required when bundle='specialty'.
-    """
+def new_game():
     state = {
         "cash":             STARTING_CASH,
         "debt":             STARTING_DEBT,
@@ -373,38 +371,12 @@ def new_game(bundle=None, specialty_provider=None):
         "last_event":       None,
         "message":          None,
         "next_rotation":    0,
-        "bundle":           bundle,
-        "specialty_provider": specialty_provider if bundle == "specialty" else None,
-        "specialty_discount": 0.75 if bundle == "specialty" else 1.0,
     }
     state["location"] = list(PROVIDERS.keys())[0]
     state["location_type"] = "provider"
     refresh_provider_prices(state)
     rotate_clients(state)
-
-    if bundle == "yc":
-        state["cash"] += 50_000
-        advance_days(state, 5)
-    elif bundle == "bootstrap":
-        state["cash"] += 50_000
-        state["debt"] += 50_000
-    elif bundle == "specialty":
-        # Lock in the discount at the chosen provider for all current and future
-        # price refreshes by re-applying in refresh_provider_prices via the state flag.
-        _apply_specialty_discount(state)
     return state
-
-
-def _apply_specialty_discount(state):
-    """Apply lifetime 25% discount at the specialty provider to current prices."""
-    prov = state.get("specialty_provider")
-    if not prov or prov not in state["provider_prices"]:
-        return
-    discount = state.get("specialty_discount", 1.0)
-    for tok in TOKEN_TYPES:
-        state["provider_prices"][prov][tok] = max(
-            1, int(state["provider_prices"][prov][tok] * discount)
-        )
 
 def _schedule_next_rotation(state):
     state["next_rotation"] = state["day"] + random.randint(CLIENT_ROTATION_MIN, CLIENT_ROTATION_MAX)
@@ -688,8 +660,6 @@ def do_travel(state, dest_name, dest_type):
         for token, base in prov["base_prices"].items():
             noise = random.uniform(0.7, 1.4)
             state["provider_prices"][dest_name][token] = max(5, int(base * noise))
-        if state.get("specialty_provider") == dest_name:
-            _apply_specialty_discount(state)
     return True, f"Travelled to {dest_name}."
 
 def borrow_limit(state):
@@ -1341,74 +1311,9 @@ def main():
   {b}30 days on the clock.{r} Good luck.
 """)
     rule()
-    input("  Press ENTER to choose your opening move...")
-    bundle, specialty = _choose_starting_bundle()
-    state = new_game(bundle=bundle, specialty_provider=specialty)
+    input("  Press ENTER to start...")
+    state = new_game()
     game_loop(state)
-
-
-def _choose_starting_bundle():
-    """Prompt the player to pick a starting bundle. Returns (bundle, specialty_provider)."""
-    clear()
-    rule("═")
-    print(f"  {_BLD}YOUR OPENING MOVE{_RST}")
-    rule("═")
-    b = _BLD
-    r = _RST
-    print(f"""
-  Before Day 1, pick how you want to start. Each option is a different bet:
-
-  {_key('1', f' {b}YC Demo Day{r}')}
-       +$50K cash, but you burn 5 days on pitch prep. Start at Day 6.
-       Best if you back yourself to move fast with extra runway.
-
-  {_key('2', f' {b}Bootstrap Loan{r}')}
-       +$50K cash and +$50K debt. No time lost.
-       Best if you want firepower now and trust you can outrun the interest.
-
-  {_key('3', f' {b}Specialty Partnership{r}')}
-       Lock in a 25% discount at one provider of your choice — forever.
-       Best if you have a strategy that leans on one supplier hard.
-
-  {_key('4', f' {b}Skip{r}')} — start clean, no perks, no penalties.
-""")
-    rule()
-    while True:
-        try:
-            cmd = input("  > ").strip()
-        except (EOFError, KeyboardInterrupt):
-            return None, None
-        if cmd == "1":
-            return "yc", None
-        if cmd == "2":
-            return "bootstrap", None
-        if cmd == "3":
-            return "specialty", _choose_specialty_provider()
-        if cmd == "4" or cmd == "":
-            return None, None
-        print("  Pick 1, 2, 3, or 4.")
-
-
-def _choose_specialty_provider():
-    """Prompt for which provider gets the 25% discount."""
-    print()
-    print(f"  Which provider gets your 25% lifetime discount?")
-    provs = list(PROVIDERS.keys())
-    for i, p in enumerate(provs, 1):
-        q = PROVIDERS[p]["quality"]
-        print(f"    {i}. {p:<12} ({PROVIDERS[p]['desc']}, quality {q:.0%})")
-    while True:
-        try:
-            cmd = input("  > ").strip()
-        except (EOFError, KeyboardInterrupt):
-            return provs[0]
-        try:
-            idx = int(cmd)
-            if 1 <= idx <= len(provs):
-                return provs[idx - 1]
-        except ValueError:
-            pass
-        print(f"  Pick 1-{len(provs)}.")
 
 
 if __name__ == "__main__":

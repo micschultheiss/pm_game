@@ -15,8 +15,8 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [ ] Add one or two new event categories (e.g. open-source model release, hiring freeze)
 - [ ] Surface why a productive move is unavailable when bankruptcy fires
 - [x] Tune debt interest vs. starting cash after recent rebalance (5% → 3% + debt-free bonus)
-- [ ] Buff Brand Asset Generator further — still stuck at 0.1% of planner builds
-- [ ] Investigate why Meta is still never visited by the planner (Mistral barely)
+- [ ] Buff Brand Asset Generator further — structurally scarce (only 4 of 13 client templates list it); add it to more wants or up base value
+- [ ] Rescue Meta provider — its 0.50 quality can't clear even the 0.55 mid-tier floor; either drop Etsy/Basecamp to 0.45 or bump Meta to 0.55
 
 ## Later / ideas
 
