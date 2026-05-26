@@ -4,9 +4,11 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-- [x] Make it turn based (every action = 1 day; Wait → Next, single-day, end of menu)
+- [x] Make empty enter the next turn
 - [ ] Rebalance the game mechanics (planner win rate dropped 66.5% → 46.0% after turn-based change)
-- [ ] Sort the travel destinations better
+- [ ] Sort the travel destinations (customers as on the customer list)
+- [ ] Add proper unit tests and test coverage as a pre-commit mechanics
+- [ ] Refactor and structure the app, different modules, e.g. engine and representation layer to preempt 2nd frontend
 
 ## Next
 

@@ -1208,7 +1208,7 @@ def game_loop(state):
             menu_craft(state)
         elif cmd == "t":
             menu_travel(state)
-        elif cmd == "n":
+        elif cmd == "n" or cmd == "":
             menu_next(state)
         elif cmd == "l":
             menu_borrow(state)
