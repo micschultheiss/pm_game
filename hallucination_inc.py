@@ -1230,46 +1230,46 @@ def game_loop(state):
 def main():
     clear()
     rule("═")
-    print("  HALLUCINATION INC. — Where AI Meets Enterprise")
+    print(f"  {_BLD}HALLUCINATION INC.{_RST} — Where AI Meets Enterprise")
     rule("═")
-    print("""
-  AI is eating your lunch. You've just been laid off from your cushy product
-  management gig at one of the big tech giants — and now you're out to cash
-  in on the SaaSocalypse. Nobody has cracked how to ship enterprise-grade
-  software with the new AI coding tools yet. That's where you come in.
+    b = _BLD
+    r = _RST
+    print(f"""
+  AI is eating your lunch. You've just been laid off from your cushy PM gig
+  at one of the big tech giants — and now you're out to cash in on the
+  {b}SaaSocalypse{r}. Nobody has cracked enterprise-grade software with the new
+  AI coding tools yet. That's where you come in.
 
-  $100,000 in debt. 5% interest per day. 30 days to turn it into a real
+  {b}$100,000 in debt{r}. {b}5% interest per day{r}. {b}30 days{r} to turn it into a real
   business.
 
 
   THE BASICS (in plain English)
-  • Tokens are the fuel AI runs on. You buy them by the million from AI
+  • {b}Tokens{r} are the fuel AI runs on. You buy them by the million from AI
     providers — the big labs like Anthropic, OpenAI, and Google. Prices
     move daily, and pricier providers ship higher-quality output.
-  • Products are finished AI SaaS solutions — a customer-support bot, a
-    compliance dashboard, and so on. You build each one from a recipe of
-    tokens, and a build takes a few days. Your pitch to customers:
-    reliable enterprise software, shipped in days.
-  • Clients are the companies and government agencies that buy your
+  • {b}Products{r} are finished AI SaaS solutions — a support bot, a compliance
+    dashboard, and so on. You build each from a recipe of tokens over a
+    few days. Your pitch: reliable enterprise software, shipped in days.
+  • {b}Clients{r} are the companies and government agencies that buy your
     products. Each pays a fixed budget — but only if your product clears
     their minimum quality bar.
 
 
   YOUR JOB
-  Buy tokens cheap  →  build quality products  →  sell them for a profit,
+  {b}Buy tokens cheap{r}  →  {b}build quality products{r}  →  {b}sell for a profit{r},
   all before your debt eats you alive.
 
 
   GOOD TO KNOW
-  • You start with $100,000 cash and $100,000 of debt that grows 5% a day.
-  • A sales trip to any provider or client costs $30,000 and burns a day.
-  • Builds take 3-6 days and 50-200 million tokens; you can store 500M.
-  • Available clients rotate every few days, so grab good deals fast.
-  • Beating a client's quality bar pays a little more — but only up to a
-    point. Tokens and finished products also drift out of date and lose
-    quality over time.
+  • You start with {b}$100K cash{r} and {b}$100K debt{r} that grows {b}5% a day{r}.
+  • A sales trip costs {b}$30K{r} and burns a day.
+  • Builds take {b}3-6 days{r} and {b}50-200M tokens{r}; storage caps at {b}500M{r}.
+  • Available clients rotate every few days — grab good deals fast.
+  • Beating a client's quality bar pays a little more, up to a point.
+    Tokens and finished products lose quality as they age.
 
-  30 days on the clock. Good luck.
+  {b}30 days on the clock.{r} Good luck.
 """)
     rule()
     input("  Press ENTER to start...")
