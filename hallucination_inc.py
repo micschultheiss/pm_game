@@ -1011,7 +1011,12 @@ def menu_travel(state):
             q = PROVIDERS[prov]["quality"]
             print(f"    {idx}. {prov}  ({PROVIDERS[prov]['desc']}, quality: {q:.0%})")
     print("\n  --- Clients ---")
-    for c in state["active_clients"]:
+    def _client_sort_key(c):
+        budgets = [w["budget"] for w in c["current_wants"].values()]
+        # Satisfied clients (no wants) sink to the bottom; otherwise sort by best payout desc.
+        return (0 if budgets else 1, -max(budgets) if budgets else 0)
+    sorted_clients = sorted(state["active_clients"], key=_client_sort_key)
+    for c in sorted_clients:
         if c["name"] != state["location"]:
             destinations.append((c["name"], "client"))
             idx = len(destinations)
