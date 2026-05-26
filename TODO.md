@@ -15,8 +15,9 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [ ] Add one or two new event categories (e.g. open-source model release, hiring freeze)
 - [ ] Surface why a productive move is unavailable when bankruptcy fires
 - [x] Tune debt interest vs. starting cash after recent rebalance (5% → 3% + debt-free bonus)
-- [ ] Buff Brand Asset Generator further — structurally scarce (only 4 of 13 client templates list it); add it to more wants or up base value
-- [ ] Rescue Meta provider — its 0.50 quality can't clear even the 0.55 mid-tier floor; either drop Etsy/Basecamp to 0.45 or bump Meta to 0.55
+- [x] Buff Brand Asset Generator — added to Walmart/Salesforce wants, base value $55K → $65K (share 0.3% → 1.0%)
+- [x] Rescue Meta provider — quality 0.50 → 0.55 (now visited 181 times in 10K planner games)
+- [ ] Rescue Mistral provider — Meta now eclipses it on every dimension; bump Mistral quality 0.62 → 0.68 to carve a niche between Meta and Google
 
 ## Later / ideas
 

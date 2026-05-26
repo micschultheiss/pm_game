@@ -335,8 +335,8 @@ def policy_planner(state):
     contract_info, prod_name, client_idx, _ = target
     recipe = g.PRODUCTS[prod_name]["recipe"]
     # Source against the safe quality, not the contract minimum, so worst-case
-    # final variance still clears.
-    min_quality = contract_info["min_quality"] / 0.92
+    # final variance still clears. Variance floor is 0.96 (see advance_days).
+    min_quality = contract_info["min_quality"] / 0.96
 
     # 5. Do we have all tokens? If yes, craft.
     if g.can_craft(state, prod_name) and _quality_ok_for_recipe(state, recipe, min_quality):
@@ -426,9 +426,9 @@ def _pick_target_contract(state):
     for ci, client in enumerate(state["active_clients"]):
         for prod_name, info in client["current_wants"].items():
             recipe = g.PRODUCTS[prod_name]["recipe"]
-            # Final-variance worst case is 0.92×, so we need tokens with
-            # quality ≥ min_quality / 0.92 to be confident of a sale.
-            safe_q = info["min_quality"] / 0.92
+            # Final-variance worst case is 0.96×, so we need tokens with
+            # quality ≥ min_quality / 0.96 to be confident of a sale.
+            safe_q = info["min_quality"] / 0.96
             est_cost = 0
             feasible = True
             for tok, need in recipe.items():

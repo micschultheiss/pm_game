@@ -58,7 +58,7 @@ PROVIDERS = {
         "base_prices": {"Code": 3, "Reasoning": 6, "Image": 2, "Voice": 3, "Video": 3},
     },
     "Meta": {
-        "quality": 0.50,
+        "quality": 0.55,
         "desc": "Open Source",
         "base_prices": {"Code": 1, "Reasoning": 2, "Image": 3, "Voice": 4, "Video": 3},
     },
@@ -89,7 +89,7 @@ PRODUCTS = {
     "Brand Asset Generator": {
         "recipe":     {"Image": 60, "Code": 10},
         "craft_days": 2,
-        "base_value": 55_000,
+        "base_value": 65_000,
     },
     "Compliance Dashboard": {
         "recipe":     {"Reasoning": 150, "Code": 80, "Image": 30},
@@ -135,7 +135,7 @@ ALL_CLIENTS = [
     {
         "name": "Walmart",
         "type": "Enterprise",
-        "wants": ["AI Customer Support", "Marketing Copilot"],
+        "wants": ["AI Customer Support", "Marketing Copilot", "Brand Asset Generator"],
         "budget_mult": (0.8, 1.2),
         "min_quality": 0.65,
     },
@@ -163,7 +163,7 @@ ALL_CLIENTS = [
     {
         "name": "Salesforce",
         "type": "Enterprise",
-        "wants": ["AI Customer Support", "Contract Analyzer", "Marketing Copilot"],
+        "wants": ["AI Customer Support", "Contract Analyzer", "Marketing Copilot", "Brand Asset Generator"],
         "budget_mult": (0.9, 1.3),
         "min_quality": 0.72,
     },
