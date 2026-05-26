@@ -1265,25 +1265,6 @@ def game_loop(state):
     end_screen(state)
 
 
-def _intro_provider_table():
-    """Render the provider/base-price reference grid for the intro screen."""
-    name_w = max(len(n) for n in PROVIDERS)
-    col_w = max(len("Reasoning"), 6)  # widest header sets the column width
-    header = (
-        f"    {'Provider'.ljust(name_w)}   Qual  "
-        + "  ".join(f"{t:>{col_w}}" for t in TOKEN_TYPES)
-    )
-    lines = [header]
-    for name, data in sorted(PROVIDERS.items(), key=lambda kv: -kv[1]["quality"]):
-        prices = "  ".join(
-            f"{'$' + str(data['base_prices'][t]):>{col_w}}" for t in TOKEN_TYPES
-        )
-        lines.append(
-            f"    {name.ljust(name_w)}   {data['quality']:>3.0%}  {prices}"
-        )
-    return "\n".join(lines)
-
-
 def main():
     clear()
     rule("═")
@@ -1311,10 +1292,6 @@ def main():
   • {b}Clients{r} are the companies and government agencies that buy your
     products. {ACTIVE_CLIENT_COUNT} are live at any time. Each pays a fixed budget
     — but only if your product clears their minimum quality bar.
-
-
-  {b}PROVIDERS{r} — base $/M tokens (prices drift daily)
-{_intro_provider_table()}
 
 
   YOUR JOB
