@@ -2,54 +2,64 @@
 
 ## Overview
 
-Hallucination Inc. is a single-process Python terminal game split across three modules:
+Hallucination Inc. is a Python game split across an engine and two peer frontends:
 
-- **`engine.py`** — pure game logic (constants, state, actions, time, oracles). No I/O.
-- **`terminal.py`** — the terminal frontend. ANSI-coloured UI, menus, prompts, REPL.
-- **`hallucination_inc.py`** — entry point. A 15-line launcher that dispatches to a frontend (terminal today, web later).
+- **`engine.py`** — pure game logic (constants, state, actions, time, oracles). Standard library only. No I/O.
+- **`terminal.py`** — the terminal frontend. ANSI-coloured UI, menus, prompts, blocking REPL. Standard library only.
+- **`web.py`** — the web frontend. A small Flask app that maps HTTP requests onto engine actions and renders state as HTML. Uses Jinja2 templates in `templates/` and CSS in `static/`. Adds Flask as the project's only runtime dependency (see [`requirements.txt`](../requirements.txt)).
+- **`hallucination_inc.py`** — entry point. A 15-line launcher that dispatches to `terminal.main()` by default and `web.main()` under `--web`.
 
-A separate [simulate.py](../simulate.py) imports `engine` directly to drive headless games for balance testing. A web frontend is planned and will plug in alongside the terminal as a peer frontend, importing the same engine.
+A separate [simulate.py](../simulate.py) imports `engine` directly to drive headless games for balance testing.
 
-There is no server, no database, no save file, no network call (yet). A run starts when you invoke `python3 hallucination_inc.py` and ends when the player quits, runs out of days, or goes bankrupt.
+The terminal frontend runs in-process; the web frontend boots Flask's dev server on `0.0.0.0:5000` (override via `PORT`) and keeps games in a module-level dict keyed by a cookie session id. Restarting the web server drops in-progress runs — there is no database, no save file. A run ends when the player quits, runs out of days, or goes bankrupt.
 
 ## Components
 
 ```
-                  ┌──────────────────────────────┐
-                  │     hallucination_inc.py     │
-                  │       (entry point)          │
-                  │                              │
-                  │  main() dispatches to a      │
-                  │  frontend (terminal today,   │
-                  │  web later). Thin launcher,  │
-                  │  ~15 lines total.            │
-                  │                              │
-                  └──────────────┬───────────────┘
-                                 │ dispatches to
-                                 ▼
-┌─────────────────────────────────┐    ┌─────────────────────────────────┐
-│           engine.py             │◀───│         terminal.py             │
-│      (pure game logic)          │    │     (terminal frontend)         │
-│                                 │    │                                 │
-│  Constants ─▶ State ─▶ Tick     │    │  Header / panels / show_*       │
-│      │                  │       │    │  prompt_int / prompt_str        │
-│      ▼                  ▼       │    │  menu_buy / craft / sell / …    │
-│  Actions:               Events  │    │  bankruptcy_screen / end_screen │
-│  do_buy / craft / sell  Drift   │    │  game_loop  (REPL)              │
-│  travel / borrow / pay  Decay   │    │                                 │
-│      │                          │    │  Imports engine symbols         │
-│      ▼                          │    │  it needs explicitly.           │
-│  Oracles:                       │    │                                 │
-│  has_any_option                 │    │                                 │
-│  is_bankrupt                    │    │                                 │
-│  is_game_over                   │    │                                 │
-└─────────────────────────────────┘    └─────────────────────────────────┘
-              ▲
-              │ also imported by
-              │
-       ┌──────┴──────┐
-       │ simulate.py │  headless policy runner for balance testing
-       └─────────────┘
+                       ┌──────────────────────────────┐
+                       │     hallucination_inc.py     │
+                       │        (entry point)         │
+                       │                              │
+                       │  default → terminal.main()   │
+                       │  --web   → web.main()        │
+                       │  ~15 lines total.            │
+                       └──────────────┬───────────────┘
+                                      │ dispatches to
+                ┌─────────────────────┴─────────────────────┐
+                ▼                                           ▼
+   ┌─────────────────────────────┐         ┌─────────────────────────────┐
+   │       terminal.py           │         │           web.py            │
+   │   (terminal frontend)       │         │       (web frontend)        │
+   │                             │         │                             │
+   │  Header / panels / show_*   │         │  Flask routes              │
+   │  prompt_int / prompt_str    │         │  /, /buy, /craft, /sell,    │
+   │  menu_buy / craft / sell    │         │  /travel, /next,            │
+   │  bankruptcy_screen          │         │  /borrow, /pay, /new        │
+   │  end_screen / game_loop     │         │  Cookie session → state     │
+   │  stdlib only.               │         │  Jinja2 templates + CSS     │
+   └──────────────┬──────────────┘         └──────────────┬──────────────┘
+                  │                                       │
+                  └────────────────┬──────────────────────┘
+                                   │ both import
+                                   ▼
+                  ┌────────────────────────────────┐
+                  │           engine.py            │
+                  │       (pure game logic)        │
+                  │                                │
+                  │  Constants ─▶ State ─▶ Tick    │
+                  │  Actions: do_buy / craft /     │
+                  │  sell / travel / borrow / pay  │
+                  │  Events / drift / decay        │
+                  │  Oracles: has_any_option,      │
+                  │  is_bankrupt, is_game_over     │
+                  │  stdlib only.                  │
+                  └────────────────┬───────────────┘
+                                   ▲
+                                   │ also imported by
+                                   │
+                            ┌──────┴──────┐
+                            │ simulate.py │  headless policy runner
+                            └─────────────┘
 ```
 
 ## The engine ↔ frontend contract

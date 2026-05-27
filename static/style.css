@@ -1,0 +1,237 @@
+/* Hallucination Inc. — terminal-flavoured web frontend
+ * Dark background, monospace, cyan accent on hotkey-style labels.
+ * Mirrors the rhythm of the CLI: header banner, panels, action menu. */
+
+:root {
+  --bg:           #0c0c0c;
+  --bg-elev:     #161616;
+  --fg:           #d8d8d8;
+  --fg-dim:       #8a8a8a;
+  --accent:       #62d4ff;
+  --accent-bold:  #9ce5ff;
+  --warn:         #e7c547;
+  --danger:       #ff7a7a;
+  --good:         #7ddc8b;
+  --rule:         #2a2a2a;
+  --font: ui-monospace, SF Mono, Menlo, Consolas, "Courier New", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  padding: 16px;
+}
+
+.terminal {
+  max-width: 96ch;
+  margin: 0 auto;
+}
+
+/* ─── Header banner ───────────────────────────────────────── */
+
+.banner {
+  border-top: 2px double var(--rule);
+  border-bottom: 2px double var(--rule);
+  padding: 12px 0;
+  margin-bottom: 14px;
+}
+
+.banner-row {
+  white-space: pre-wrap;
+}
+
+.banner-row-title { font-size: 15px; }
+.banner-row-title strong { color: var(--accent-bold); letter-spacing: 0.04em; }
+
+/* ─── Event + message banners ─────────────────────────────── */
+
+.event-banner {
+  border-left: 3px solid var(--accent);
+  padding: 6px 12px;
+  margin: 8px 0;
+  background: var(--bg-elev);
+  white-space: pre-wrap;
+}
+
+.msg-banner {
+  border-left: 3px solid var(--good);
+  padding: 6px 12px;
+  margin: 8px 0;
+  background: var(--bg-elev);
+}
+
+/* ─── Location + inventory panel ───────────────────────────── */
+
+.panel {
+  border-bottom: 1px solid var(--rule);
+  padding: 8px 0 12px;
+  margin-bottom: 14px;
+}
+
+.panel .row { padding: 2px 0; }
+.panel .label { color: var(--fg-dim); display: inline-block; min-width: 11ch; }
+.panel .warn { color: var(--warn); }
+.panel .token { color: var(--fg); }
+.panel .product { color: var(--good); }
+.panel .product.crafting { color: var(--warn); }
+.panel .want { color: var(--fg); }
+
+/* ─── Market grid + contracts ──────────────────────────────── */
+
+section.market, section.contracts {
+  margin: 14px 0;
+}
+
+section.market h2, section.contracts h2, section.actions h2 {
+  font-size: 14px;
+  font-weight: normal;
+  color: var(--fg-dim);
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+th, td {
+  text-align: left;
+  padding: 3px 8px 3px 0;
+  white-space: nowrap;
+}
+
+th {
+  color: var(--fg-dim);
+  font-weight: normal;
+  border-bottom: 1px solid var(--rule);
+}
+
+tr.here { background: rgba(98, 212, 255, 0.06); }
+tr.here td { color: var(--accent-bold); }
+.here-mark { color: var(--accent); width: 1ch; }
+
+td.muted, .muted { color: var(--fg-dim); }
+
+/* ─── Actions ──────────────────────────────────────────────── */
+
+section.actions {
+  margin-top: 18px;
+  border-top: 1px solid var(--rule);
+  padding-top: 14px;
+}
+
+.action {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--bg-elev);
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+
+.action summary {
+  cursor: pointer;
+  color: var(--accent);
+  list-style: none;
+  user-select: none;
+  padding: 2px 0;
+}
+
+.action summary::-webkit-details-marker { display: none; }
+.action summary:hover { color: var(--accent-bold); }
+
+.action[open] summary {
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--rule);
+  padding-bottom: 6px;
+}
+
+.action form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+.action label { display: flex; gap: 6px; align-items: center; color: var(--fg-dim); }
+
+input, select {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--rule);
+  font: inherit;
+  padding: 4px 6px;
+  border-radius: 2px;
+}
+
+input:focus, select:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 0;
+}
+
+button {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font: inherit;
+  padding: 4px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+button:hover { background: rgba(98, 212, 255, 0.1); color: var(--accent-bold); }
+button.primary { color: var(--good); border-color: var(--good); }
+button.primary:hover { background: rgba(125, 220, 139, 0.1); }
+button.danger { color: var(--danger); border-color: var(--danger); }
+button.danger:hover { background: rgba(255, 122, 122, 0.1); }
+
+.next-form { margin-top: 14px; }
+.reset-form { margin-top: 8px; }
+
+.hint { font-size: 12px; margin-left: 4px; }
+
+/* ─── End / bankruptcy screens ─────────────────────────────── */
+
+.screen {
+  border-top: 2px double var(--rule);
+  border-bottom: 2px double var(--rule);
+  padding: 28px 0;
+  margin: 28px 0;
+  text-align: center;
+}
+
+.screen h1 {
+  font-size: 24px;
+  letter-spacing: 0.05em;
+  margin-bottom: 18px;
+}
+
+.screen.bankruptcy h1 { color: var(--danger); }
+.screen.end .grade { color: var(--accent-bold); font-size: 18px; margin: 24px 0; }
+
+.kv {
+  margin: 14px auto;
+  border: none;
+}
+.kv th { text-align: right; padding-right: 14px; color: var(--fg-dim); border: 0; }
+.kv td { padding-left: 14px; border: 0; }
+
+/* ─── Footer ───────────────────────────────────────────────── */
+
+.footer {
+  margin-top: 36px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  text-align: center;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+.footer code { color: var(--fg); }

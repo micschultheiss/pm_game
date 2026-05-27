@@ -1,0 +1,4 @@
+# Dependencies for the web frontend (`python3 hallucination_inc.py --web`).
+# The terminal frontend and simulator use the standard library only —
+# they do not require anything from this file.
+flask>=3.0

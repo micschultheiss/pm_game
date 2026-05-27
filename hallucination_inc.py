@@ -2,13 +2,23 @@
 """
 Hallucination Inc. — entry point.
 
-Dispatches to a frontend. The terminal UI is the default and only frontend
-today; a web frontend is planned and will be selected here via a flag.
+Dispatches to a frontend:
 
-Run with ``python3 hallucination_inc.py``.
+- default: terminal UI (``python3 hallucination_inc.py``)
+- ``--web``: Flask web frontend (``python3 hallucination_inc.py --web``);
+  requires Flask — install via ``pip install -r requirements.txt``.
 """
 
-from terminal import main
+import sys
+
+
+def main():
+    if "--web" in sys.argv:
+        from web import main as web_main
+        web_main()
+    else:
+        from terminal import main as terminal_main
+        terminal_main()
 
 
 if __name__ == "__main__":

@@ -13,25 +13,29 @@ See [README.md](README.md) for how to run it and [docs/Hallucination_Inc_PRD.md]
 ## Layout
 
 ```
-engine.py             # pure game logic — state, actions, time, oracles. No I/O.
-terminal.py           # terminal frontend — ANSI UI, menus, prompts, REPL.
-hallucination_inc.py  # entry point — dispatches to a frontend (terminal today, web later).
+engine.py             # pure game logic — state, actions, time, oracles. No I/O. stdlib only.
+terminal.py           # terminal frontend — ANSI UI, menus, prompts, REPL. stdlib only.
+web.py                # Flask web frontend — HTTP server, HTML rendering, in-memory sessions.
+templates/, static/   # Jinja2 templates + CSS for the web frontend.
+hallucination_inc.py  # entry point — dispatches to a frontend (terminal default, `--web` for Flask).
 simulate.py           # headless runner used to balance/regression-test the loop
 test_engine.py        # unittest suite for engine logic
 test_terminal.py      # unittest suite for terminal frontend
 test_helpers.py       # shared test helpers (state builders, stdout capture)
 run_tests.py          # coverage-gated test runner (tracks engine.py + terminal.py)
+requirements.txt      # web-frontend dependencies (Flask). Not needed for terminal or sim.
 TODO.md               # working backlog
 docs/Hallucination_Inc_PRD.md   # canonical product requirements
 docs/                 # architecture, ADRs, game design notes
 ```
 
-Run with `python3 hallucination_inc.py` (the canonical entry point) or
-`python3 -m terminal` if you want to skip the launcher.
+Run terminal mode: `python3 hallucination_inc.py`.
+Run web mode: `pip install -r requirements.txt && python3 hallucination_inc.py --web`
+(serves on http://localhost:5000).
 
 ## Conventions
 
-- **Python 3.8+, standard library only.** No `pip install`, no external deps. Do not add any.
+- **Python 3.8+.** `engine.py` and the terminal frontend use the standard library only — keep it that way so simulators and the terminal stay zero-install. Other frontends may add dependencies if they're worth it (the web frontend uses Flask). Document new deps in `requirements.txt`.
 - **Engine / frontend separation.** All game logic lives in `engine.py`. Frontends import from it; they never reimplement rules. New mechanics go in `engine.py` first, then each frontend wires up its own UI for them.
 - **Action functions return `(ok, msg)`.** The `msg` is plain user-facing text with no ANSI codes — frontends render it as-is. `state["message"]` and `state["last_event"]` are the documented hand-off: engine writes, frontends read + clear.
 - **Tone is meme-y on purpose.** UI copy, event headlines, and end-game grades are written with PM/AI satire. Keep that register when adding events, clients, or end-screen text.

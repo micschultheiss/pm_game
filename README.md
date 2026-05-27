@@ -15,25 +15,47 @@ Hallucination Inc. is a simple game that reimagines the Drug Wars economic loop 
 
 ## Requirements
 
-- Python 3.8+ (uses only the standard library — no `pip install` required)
-- A terminal
+- Python 3.8+
+- A terminal — for the terminal frontend
+- (Optional) Flask — for the web frontend: `pip install -r requirements.txt`
 
 ## Run it
 
 ```bash
+# Terminal frontend (default — standard library only)
 python3 hallucination_inc.py
+
+# Web frontend (Flask) — http://localhost:5000
+pip install -r requirements.txt
+python3 hallucination_inc.py --web
 ```
 
-The game runs entirely in the terminal with text prompts.
+The terminal frontend runs entirely with text prompts. The web frontend
+serves an HTML page that mirrors the terminal layout, with one game per
+browser cookie. Override the port with `PORT=5050 python3 hallucination_inc.py --web`.
+
+To expose the web frontend over the internet for ad-hoc sharing:
+
+```bash
+# In another terminal:
+cloudflared tunnel --url http://localhost:5000
+```
 
 ## Project structure
 
 ```
 pm_game/
-├── hallucination_inc.py          # the game — single file, stdlib only
+├── engine.py                     # pure game logic — state, actions, time, oracles
+├── terminal.py                   # terminal frontend (ANSI UI, REPL)
+├── web.py                        # Flask web frontend
+├── templates/, static/           # web frontend assets
+├── hallucination_inc.py          # entry point — dispatches terminal / --web
 ├── simulate.py                   # headless runner for balance / regression testing
-├── test_hallucination_inc.py     # unittest suite
+├── test_engine.py                # unittest suite — engine logic
+├── test_terminal.py              # unittest suite — terminal frontend
+├── test_helpers.py               # shared test fixtures
 ├── run_tests.py                  # stdlib coverage runner (90% gate)
+├── requirements.txt              # web-frontend dependencies (Flask)
 ├── scripts/
 │   ├── pre-commit                # git hook source-of-truth
 │   └── install-hooks.sh          # one-shot installer for fresh clones
@@ -48,10 +70,14 @@ pm_game/
     ├── game-design.md            # design notes and balance rationale
     └── adr/                      # architecture decision records
         ├── 001-tech-stack.md
-        └── 002-game-state.md
+        ├── 002-game-state.md
+        └── 003-engine-frontend-split.md
 ```
 
-`hallucination_inc.py` is intentionally monolithic (the single-file constraint is part of the project's character). `simulate.py` plays headless games against several policies (random / greedy / planner) and prints win-rate, bankruptcy, and product-mix stats — used to validate any balance change.
+The engine and terminal frontend stay stdlib-only; only the web frontend
+adds a dependency. `simulate.py` plays headless games against several
+policies (random / greedy / planner) and prints win-rate, bankruptcy, and
+product-mix stats — used to validate any balance change.
 
 ## Tests
 
@@ -63,8 +89,8 @@ python3 -m unittest -v         # just the tests, no coverage
 ```
 
 `run_tests.py` measures line coverage with the stdlib `trace` module and an
-AST-based denominator (`ast`). Current coverage of `hallucination_inc.py` is
-~96%.
+AST-based denominator (`ast`). Current coverage: ~93% on `engine.py`, ~96%
+on `terminal.py`. The web frontend isn't coverage-gated yet.
 
 A pre-commit git hook runs the gate on every commit that touches Python files.
 To enable it after a fresh clone:

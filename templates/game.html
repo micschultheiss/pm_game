@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hallucination Inc.</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<main class="terminal">
+
+{# ─────────────────── End / Bankruptcy screens ─────────────────── #}
+{% if is_bankrupt %}
+
+  <section class="screen bankruptcy">
+    <h1>💀 BANKRUPTCY</h1>
+    <p>Day {{ state.day }}: cash $0, no path forward.</p>
+    <p>Debt: ${{ '{:,}'.format(state.debt) }}</p>
+    <p>Tokens: {{ token_total }}M · Products: {{ state['products']|length }}</p>
+    <p class="muted">No way to buy, craft, sell, or travel. The runway is gone.</p>
+    <form method="post" action="{{ url_for('new_game') }}">
+      <button type="submit" class="primary">Start a new run →</button>
+    </form>
+  </section>
+
+{% elif is_game_over %}
+
+  {% set debt_free_bonus = DEBT_FREE_BONUS if state.debt == 0 else 0 %}
+  {% set final = net_worth + debt_free_bonus %}
+  <section class="screen end">
+    <h1>GAME OVER — Performance Review</h1>
+    <table class="kv">
+      <tr><th>Cash</th>          <td>${{ '{:,}'.format(state.cash) }}</td></tr>
+      <tr><th>Debt</th>          <td>${{ '{:,}'.format(state.debt) }}</td></tr>
+      <tr><th>Net Worth</th>     <td>${{ '{:,}'.format(net_worth) }}</td></tr>
+      {% if debt_free_bonus %}
+      <tr><th>Debt-free bonus</th> <td>+${{ '{:,}'.format(debt_free_bonus) }}</td></tr>
+      <tr><th>Final Score</th>     <td>${{ '{:,}'.format(final) }}</td></tr>
+      {% endif %}
+      <tr><th>Products built</th>  <td>{{ state['products']|length }} unsold</td></tr>
+    </table>
+    <h2 class="grade">
+      {% if final >= 1000000 %}🏆 UNICORN — You disrupted the market. IPO incoming.
+      {% elif final >= 500000 %}🌟 SERIES A — Strong traction. Investors are lining up.
+      {% elif final >= 100000 %}✅ RAMEN PROFITABLE — Scrappy, but you made it work.
+      {% elif final >= 0 %}😅 BROKE EVEN — The hallucinations were mid.
+      {% else %}💀 BANKRUPT — Turns out it was all hallucinated.
+      {% endif %}
+    </h2>
+    <form method="post" action="{{ url_for('new_game') }}">
+      <button type="submit" class="primary">Start a new run →</button>
+    </form>
+  </section>
+
+{% else %}
+
+{# ─────────────────── Active game ─────────────────── #}
+
+<header class="banner">
+  <div class="banner-row banner-row-title">
+    <strong>HALLUCINATION INC.</strong>
+    · Day {{ state.day }}/{{ MAX_DAYS }}
+    · 📍 {{ state.location }}
+    {%- if location_info.type == 'provider' %}
+      ({{ location_info.desc }}, {{ '{:.0%}'.format(location_info.quality) }})
+    {%- else %}
+      ({{ location_info.desc }})
+    {%- endif %}
+  </div>
+  <div class="banner-row">
+    💰 ${{ '{:,}'.format(state.cash) }}
+    &nbsp;&nbsp;&nbsp;💳 ${{ '{:,}'.format(state.debt) }}
+    &nbsp;&nbsp;&nbsp;📦 {{ token_total }}M / {{ MAX_TOKENS }}M
+    &nbsp;&nbsp;&nbsp;
+    {% if state.crafting %}
+      🔨 {{ state.crafting.name }}
+      ({{ state.crafting.days_left }}d, {{ '{:.0%}'.format(state.crafting.quality) }})
+    {% else %}
+      🔨 idle
+    {% endif %}
+  </div>
+</header>
+
+{% if event %}
+  <div class="event-banner">⚡ {{ event }}</div>
+{% endif %}
+{% if msg %}
+  <div class="msg-banner">➤ {{ msg }}</div>
+{% endif %}
+
+{# Location panel #}
+<section class="panel">
+  {% if location_info.type == 'client' and not location_info.stale %}
+    {% if location_info.wants %}
+      <div class="row">
+        <span class="label">At {{ state.location }}:</span>
+        {% for prod, info in location_info.wants.items() %}
+          <span class="want">{{ prod }} (${{ '{:,}'.format(info.budget) }}, ≥{{ '{:.0%}'.format(info.min_quality) }})</span>
+          {%- if not loop.last %} · {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="row"><span class="label">At {{ state.location }} —</span> no open contracts here.</div>
+    {% endif %}
+  {% elif location_info.stale %}
+    <div class="row warn">⚠️ {{ state.location }} rotated out of the active roster. Travel elsewhere.</div>
+  {% endif %}
+
+  <div class="row">
+    <span class="label">Tokens:</span>
+    {% if inventory.tokens %}
+      {% for t in inventory.tokens %}
+        <span class="token">{{ t.type }} {{ t.qty }}M ({{ '{:.0%}'.format(t.quality) }}q)</span>
+        {%- if not loop.last %} · {% endif %}
+      {% endfor %}
+    {% else %}<span class="muted">(none)</span>{% endif %}
+  </div>
+  <div class="row">
+    <span class="label">Products:</span>
+    {% if inventory.products or inventory.crafting %}
+      {% for p in inventory.products %}
+        <span class="product">{{ p.name }} ({{ '{:.0%}'.format(p.quality) }})</span>
+        {%- if not loop.last or inventory.crafting %} · {% endif %}
+      {% endfor %}
+      {% if inventory.crafting %}
+        <span class="product crafting">🔨 {{ inventory.crafting.name }}
+          ({{ inventory.crafting.days_left }}d left,
+          {{ '{:.0%}'.format(inventory.crafting.quality) }})</span>
+      {% endif %}
+    {% else %}<span class="muted">(none)</span>{% endif %}
+  </div>
+</section>
+
+{# Market price grid #}
+<section class="market">
+  <h2>Today's market — $/M tokens at every provider</h2>
+  <table>
+    <thead>
+      <tr>
+        <th></th><th>Provider</th><th>Qual</th>
+        {% for t in TOKEN_TYPES %}<th>{{ t }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in market_grid %}
+        <tr class="{% if row.here %}here{% endif %}">
+          <td class="here-mark">{% if row.here %}→{% endif %}</td>
+          <td>{{ row.name }}</td>
+          <td>{{ '{:.0%}'.format(row.quality) }}</td>
+          {% for t, price in row.prices %}<td>${{ price }}</td>{% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{# Open contracts #}
+<section class="contracts">
+  <h2>Open contracts (by payout)</h2>
+  {% if contracts %}
+    <table>
+      <thead><tr><th>Tag</th><th>Client</th><th>Product</th><th>Recipe</th><th>Pays</th><th>Min Q</th></tr></thead>
+      <tbody>
+        {% for r in contracts %}
+          <tr>
+            <td>[{{ r.tag }}]</td>
+            <td>{{ r.client }}</td>
+            <td>{{ r.product }}</td>
+            <td class="muted">{{ r.recipe }}</td>
+            <td>${{ '{:,}'.format(r.budget) }}</td>
+            <td>≥{{ '{:.0%}'.format(r.min_quality) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">(no open contracts right now)</p>
+  {% endif %}
+</section>
+
+{# Actions #}
+<section class="actions">
+  <h2>Actions</h2>
+
+  {% if location_info.type == 'provider' %}
+    <details class="action">
+      <summary>[ Buy tokens ]</summary>
+      <form method="post" action="{{ url_for('buy') }}">
+        <label>Token
+          <select name="token">
+            {% for t in TOKEN_TYPES %}
+              <option value="{{ t }}">{{ t }} (${{ location_info.prices[t] }}/M)</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Qty (M)
+          <input name="qty" type="number" min="1" max="{{ token_free }}" required>
+        </label>
+        <button type="submit">Buy</button>
+        <span class="hint muted">Free storage: {{ token_free }}M</span>
+      </form>
+    </details>
+  {% endif %}
+
+  {% if location_info.type == 'client' and not location_info.stale %}
+    <details class="action">
+      <summary>[ Sell product ]</summary>
+      {% if sellables %}
+        <form method="post" action="{{ url_for('sell') }}">
+          <label>Product
+            <select name="product_idx">
+              {% for s in sellables %}
+                <option value="{{ s.idx }}">
+                  {{ s.name }} — quality {{ '{:.0%}'.format(s.quality) }}
+                  (pays ${{ '{:,}'.format(s.budget) }}, needs ≥{{ '{:.0%}'.format(s.min_quality) }})
+                  {%- if not s.ok %} ⚠ under quality{% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Sell</button>
+        </form>
+      {% else %}
+        <p class="muted">No matching product / contract here.</p>
+      {% endif %}
+    </details>
+  {% endif %}
+
+  <details class="action">
+    <summary>[ Craft ]</summary>
+    {% if state.crafting %}
+      <p class="muted">Already crafting {{ state.crafting.name }}
+        ({{ state.crafting.days_left }}d left).</p>
+    {% else %}
+      <form method="post" action="{{ url_for('craft') }}">
+        <label>Product
+          <select name="product">
+            {% for name, prod in PRODUCTS.items() %}
+              <option value="{{ name }}">
+                {{ name }} — {{ prod.craft_days }}d build,
+                ${{ '{:,}'.format(prod.base_value) }} base
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Craft</button>
+      </form>
+    {% endif %}
+  </details>
+
+  <details class="action">
+    <summary>[ Travel ]&nbsp;<span class="muted hint">(${{ '{:,}'.format(TRAVEL_COST) }} + 1 day)</span></summary>
+    <form method="post" action="{{ url_for('travel') }}">
+      <label>Destination
+        <select name="dest" required onchange="
+          var [t, n] = this.value.split('|');
+          this.form.dest_type.value = t;
+          this.form.dest_name.value = n;
+        ">
+          <optgroup label="LLM Providers">
+            {% for p in destinations.providers %}
+              <option value="provider|{{ p.name }}">
+                {{ p.name }} — {{ p.desc }}, quality {{ '{:.0%}'.format(p.quality) }}
+              </option>
+            {% endfor %}
+          </optgroup>
+          <optgroup label="Clients">
+            {% for c in destinations.clients %}
+              <option value="client|{{ c.name }}">
+                [{{ c.tag }}] {{ c.name }}
+                {%- if c.wants %} — wants: {{ c.wants|join(', ') }}{% else %} — (satisfied){% endif %}
+              </option>
+            {% endfor %}
+          </optgroup>
+        </select>
+      </label>
+      <input type="hidden" name="dest_type" value="provider">
+      <input type="hidden" name="dest_name" value="{{ destinations.providers[0].name if destinations.providers else '' }}">
+      <button type="submit">Travel</button>
+    </form>
+  </details>
+
+  <details class="action">
+    <summary>[ Borrow ]&nbsp;<span class="muted hint">avail ${{ '{:,}'.format(borrow_available) }}</span></summary>
+    <form method="post" action="{{ url_for('borrow') }}">
+      <label>Amount $
+        <input name="amount" type="number" min="1" max="{{ borrow_available }}" required>
+      </label>
+      <button type="submit">Borrow</button>
+      <p class="hint muted">Collateral line: ${{ '{:,}'.format(borrow_limit) }} (30% of finished
+        product base value). Already drawn: ${{ '{:,}'.format(state.collateral_debt) }}.</p>
+    </form>
+  </details>
+
+  <details class="action">
+    <summary>[ Pay debt ]&nbsp;<span class="muted hint">${{ '{:,}'.format(state.debt) }} outstanding</span></summary>
+    <form method="post" action="{{ url_for('pay') }}">
+      <label>Amount $
+        <input name="amount" type="number" min="1" max="{{ state.cash }}" required>
+      </label>
+      <button type="submit">Pay</button>
+    </form>
+  </details>
+
+  <form method="post" action="{{ url_for('next_day') }}" class="next-form">
+    <button type="submit" class="primary">Next day →</button>
+  </form>
+
+  <form method="post" action="{{ url_for('new_game') }}" class="reset-form"
+        onsubmit="return confirm('Abandon this run and start over?');">
+    <button type="submit" class="danger">Reset game</button>
+  </form>
+</section>
+
+{% endif %}
+
+<footer class="footer muted">
+  Engine: <code>engine.py</code> · Frontend: <code>web.py</code> ·
+  <a href="https://github.com/micschultheiss/pm_game">source</a>
+</footer>
+
+</main>
+</body>
+</html>
