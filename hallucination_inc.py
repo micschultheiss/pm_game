@@ -789,24 +789,19 @@ def show_provider_price_grid(state):
         print(f"  {marker}{name.ljust(name_w)}   {data['quality']:>3.0%}  {cells}")
 
 def show_location_panel(state):
-    """One-line prices at the current provider, or current wants if at a client.
-    On day 1, show the full provider grid instead so the player sees the spread."""
+    """Current-location context. Provider prices are rendered separately by the
+    market grid (show_provider_price_grid), so this panel only surfaces the
+    'you are at a client' wants line."""
     if state["location_type"] == "provider":
-        if state["day"] == 1:
-            show_provider_price_grid(state)
-            return
-        prices = state["provider_prices"][state["location"]]
-        parts = [f"{t} ${prices[t]}" for t in TOKEN_TYPES]
-        print(f"  Prices ($/M):  {' · '.join(parts)}")
+        return
+    client = next((c for c in state["active_clients"]
+                   if c["name"] == state["location"]), None)
+    if not client or not client["current_wants"]:
+        print(f"  At {state['location']} — no open contracts here.")
     else:
-        client = next((c for c in state["active_clients"]
-                       if c["name"] == state["location"]), None)
-        if not client or not client["current_wants"]:
-            print(f"  At {state['location']} — no open contracts here.")
-        else:
-            parts = [f"{p} (${i['budget']:,}, ≥{i['min_quality']:.0%})"
-                     for p, i in client["current_wants"].items()]
-            print(f"  At {state['location']}:  {' · '.join(parts)}")
+        parts = [f"{p} (${i['budget']:,}, ≥{i['min_quality']:.0%})"
+                 for p, i in client["current_wants"].items()]
+        print(f"  At {state['location']}:  {' · '.join(parts)}")
 
 def show_inventory_inline(state):
     """Tokens + products as one line each."""
@@ -1056,6 +1051,8 @@ def menu_craft(state):
         state["message"] = msg
 
 def menu_travel(state):
+    print()
+    show_provider_price_grid(state)
     print("\n  Destinations:\n")
     destinations = []
     print("  --- LLM Providers ---")
@@ -1245,6 +1242,8 @@ def game_loop(state):
         show_location_panel(state)
         show_inventory_inline(state)
         print()
+        rule()
+        show_provider_price_grid(state)
         rule()
         show_open_contracts(state)
         rule()
