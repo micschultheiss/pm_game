@@ -770,9 +770,31 @@ def show_message(state):
         rule()
         state["message"] = None
 
+def show_provider_price_grid(state):
+    """Full provider-vs-token price grid. Used on day 1 so the player sees the
+    whole market at a glance; subsequent days fall back to the one-line panel."""
+    name_w = max(len(n) for n in PROVIDERS)
+    col_w = max(len("Reasoning"), 6)
+    here = state["location"] if state["location_type"] == "provider" else None
+    header_row = (
+        f"    {'Provider'.ljust(name_w)}   Qual  "
+        + "  ".join(f"{t:>{col_w}}" for t in TOKEN_TYPES)
+    )
+    print("  Today's market — $/M tokens at every provider:")
+    print(header_row)
+    for name, data in sorted(PROVIDERS.items(), key=lambda kv: -kv[1]["quality"]):
+        prices = state["provider_prices"][name]
+        cells = "  ".join(f"{'$' + str(prices[t]):>{col_w}}" for t in TOKEN_TYPES)
+        marker = "→ " if name == here else "  "
+        print(f"  {marker}{name.ljust(name_w)}   {data['quality']:>3.0%}  {cells}")
+
 def show_location_panel(state):
-    """One-line prices at the current provider, or current wants if at a client."""
+    """One-line prices at the current provider, or current wants if at a client.
+    On day 1, show the full provider grid instead so the player sees the spread."""
     if state["location_type"] == "provider":
+        if state["day"] == 1:
+            show_provider_price_grid(state)
+            return
         prices = state["provider_prices"][state["location"]]
         parts = [f"{t} ${prices[t]}" for t in TOKEN_TYPES]
         print(f"  Prices ($/M):  {' · '.join(parts)}")
