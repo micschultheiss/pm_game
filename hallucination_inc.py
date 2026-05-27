@@ -227,22 +227,22 @@ ALL_CLIENTS = [
 def _provider_price_spike(state, provider, token, factor):
     if provider in state["provider_prices"]:
         p = state["provider_prices"][provider][token]
-        state["provider_prices"][provider][token] = int(p * factor)
+        state["provider_prices"][provider][token] = max(1, round(p * factor))
 
 def _provider_price_crash(state, provider, token, factor):
     if provider in state["provider_prices"]:
         p = state["provider_prices"][provider][token]
-        state["provider_prices"][provider][token] = max(5, int(p * factor))
+        state["provider_prices"][provider][token] = max(1, round(p * factor))
 
 def _all_provider_spike(state, token, factor):
     for prov in state["provider_prices"]:
         p = state["provider_prices"][prov][token]
-        state["provider_prices"][prov][token] = int(p * factor)
+        state["provider_prices"][prov][token] = max(1, round(p * factor))
 
 def _all_provider_crash(state, token, factor):
     for prov in state["provider_prices"]:
         p = state["provider_prices"][prov][token]
-        state["provider_prices"][prov][token] = max(5, int(p * factor))
+        state["provider_prices"][prov][token] = max(1, round(p * factor))
 
 def _client_budget_spike(state, product):
     for c in state["active_clients"]:
@@ -385,8 +385,8 @@ def refresh_provider_prices(state):
     for prov, data in PROVIDERS.items():
         state["provider_prices"][prov] = {}
         for token, base in data["base_prices"].items():
-            noise = random.uniform(0.7, 1.4)
-            state["provider_prices"][prov][token] = max(5, int(base * noise))
+            noise = random.uniform(0.6, 1.6)
+            state["provider_prices"][prov][token] = max(1, round(base * noise))
 
 def _make_client_from_template(template):
     """Generate a fresh active client with random wants/budgets."""
@@ -658,8 +658,8 @@ def do_travel(state, dest_name, dest_type):
         prov = PROVIDERS[dest_name]
         state["provider_prices"][dest_name] = {}
         for token, base in prov["base_prices"].items():
-            noise = random.uniform(0.7, 1.4)
-            state["provider_prices"][dest_name][token] = max(5, int(base * noise))
+            noise = random.uniform(0.6, 1.6)
+            state["provider_prices"][dest_name][token] = max(1, round(base * noise))
     return True, f"Travelled to {dest_name}."
 
 def borrow_limit(state):
