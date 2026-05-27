@@ -4,7 +4,6 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-- [ ] Add proper unit tests and test coverage as a pre-commit mechanics
 - [ ] Refactor and structure the app, different modules, e.g. engine and representation layer to preempt 2nd frontend
 
 ## Next
@@ -23,6 +22,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Done
 
+- [x] Add unit tests + 90% stdlib coverage gate wired into pre-commit (current: 95.6% on hallucination_inc.py, 154 tests)
 - [x] Make empty enter the next turn
 - [x] Rebalance the game mechanics (planner win 44% → 58%, median NW $35K → $169K after 5-variant pass)
 - [x] Sort the travel destinations (customers as on the customer list)

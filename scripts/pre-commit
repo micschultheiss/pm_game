@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook for Hallucination Inc.
+# Runs the unit test suite + stdlib coverage gate. Blocks the commit if
+# tests fail or hallucination_inc.py coverage drops below 90%.
+#
+# Install with: ./scripts/install-hooks.sh
+# Bypass (only when you really mean it) with: git commit --no-verify
+#
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Only re-run when Python sources or tests changed.
+if git diff --cached --name-only | grep -Eq '\.py$|^run_tests\.py$|^test_'; then
+  echo "[pre-commit] Running tests + coverage gate…"
+  python3 run_tests.py
+else
+  echo "[pre-commit] No Python changes staged; skipping tests."
+fi

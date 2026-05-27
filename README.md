@@ -32,6 +32,11 @@ The game runs entirely in the terminal with text prompts.
 pm_game/
 ├── hallucination_inc.py          # the game — single file, stdlib only
 ├── simulate.py                   # headless runner for balance / regression testing
+├── test_hallucination_inc.py     # unittest suite
+├── run_tests.py                  # stdlib coverage runner (90% gate)
+├── scripts/
+│   ├── pre-commit                # git hook source-of-truth
+│   └── install-hooks.sh          # one-shot installer for fresh clones
 ├── README.md
 ├── CLAUDE.md                     # repo conventions for AI-assisted edits
 ├── TODO.md                       # working backlog
@@ -47,6 +52,28 @@ pm_game/
 ```
 
 `hallucination_inc.py` is intentionally monolithic (the single-file constraint is part of the project's character). `simulate.py` plays headless games against several policies (random / greedy / planner) and prints win-rate, bankruptcy, and product-mix stats — used to validate any balance change.
+
+## Tests
+
+The test suite is `unittest`-based and uses only the Python standard library:
+
+```bash
+python3 run_tests.py           # tests + coverage gate (90% threshold)
+python3 -m unittest -v         # just the tests, no coverage
+```
+
+`run_tests.py` measures line coverage with the stdlib `trace` module and an
+AST-based denominator (`ast`). Current coverage of `hallucination_inc.py` is
+~96%.
+
+A pre-commit git hook runs the gate on every commit that touches Python files.
+To enable it after a fresh clone:
+
+```bash
+./scripts/install-hooks.sh
+```
+
+Bypass the hook (rarely) with `git commit --no-verify`.
 
 ## Status
 
