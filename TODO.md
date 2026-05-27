@@ -4,7 +4,9 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-- [ ] Refactor and structure the app, different modules, e.g. engine and representation layer to preempt 2nd frontend
+- [ ] Step 2 of engine split — rename the terminal half to its own `terminal.py` file and shrink `hallucination_inc.py` to a thin entry-point launcher
+- [ ] Step 3 of engine split — point `test_hallucination_inc.py` at `engine` directly for engine-level tests, leave terminal-level tests on the terminal module, drop the private-symbol re-exports
+- [ ] Step 4 of engine split — `web.py` Flask frontend reusing the engine
 
 ## Next
 
@@ -22,6 +24,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Done
 
+- [x] Step 1 of engine split — extracted `engine.py` (pure logic), kept `hallucination_inc.py` as terminal frontend re-exporting engine surface for test compatibility. Added `is_bankrupt` / `is_game_over` oracles. simulate.py now imports `engine` directly. 154 tests still pass; coverage 91% engine, 95.5% terminal.
 - [x] Add unit tests + 90% stdlib coverage gate wired into pre-commit (current: 95.6% on hallucination_inc.py, 154 tests)
 - [x] Make empty enter the next turn
 - [x] Rebalance the game mechanics (planner win 44% → 58%, median NW $35K → $169K after 5-variant pass)

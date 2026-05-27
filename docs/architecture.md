@@ -2,36 +2,44 @@
 
 ## Overview
 
-Hallucination Inc. is a single-process, single-file Python terminal game. The entire runtime — state, game loop, UI, and rules — lives in [hallucination_inc.py](../hallucination_inc.py). A separate [simulate.py](../simulate.py) drives the same rules headlessly for balance testing.
+Hallucination Inc. is a single-process Python terminal game split across two modules: a pure **engine** (`engine.py`) and a **terminal frontend** (`hallucination_inc.py`). A separate [simulate.py](../simulate.py) drives the engine headlessly for balance testing. A web frontend is planned and will reuse the same engine.
 
 There is no server, no database, no save file, no network call. A run starts when you invoke `python3 hallucination_inc.py` and ends when the player quits, runs out of days, or goes bankrupt.
 
 ## Components
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                   hallucination_inc.py                   │
-│                                                          │
-│  ┌────────────┐   ┌─────────────┐   ┌────────────────┐   │
-│  │  Constants │   │ Game state  │   │   Daily tick   │   │
-│  │  (prices,  │──▶│  (cash,     │──▶│  (interest,    │   │
-│  │  recipes,  │   │  inventory, │   │  decay, events,│   │
-│  │  clients)  │   │  clients)   │   │  client drift) │   │
-│  └────────────┘   └─────────────┘   └────────────────┘   │
-│         │                │                   │           │
-│         ▼                ▼                   ▼           │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │  Action handlers: buy / craft / refactor / sell /  │  │
-│  │  travel / wait / pay debt / quit                   │  │
-│  └────────────────────────────────────────────────────┘  │
-│                          │                               │
-│                          ▼                               │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │  Terminal UI: status panel, command prompt,        │  │
-│  │  event headline, end-game screen                   │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
+┌─────────────────────────────────┐    ┌─────────────────────────────────┐
+│           engine.py             │    │     hallucination_inc.py        │
+│      (pure game logic)          │    │     (terminal frontend)         │
+│                                 │    │                                 │
+│  Constants ─▶ State ─▶ Tick     │    │  Header / panels / show_*       │
+│      │                  │       │◀───│  prompt_int / prompt_str        │
+│      ▼                  ▼       │    │  menu_buy / craft / sell / …    │
+│  Actions:               Events  │    │  bankruptcy_screen / end_screen │
+│  do_buy / craft / sell  Drift   │    │  game_loop  (REPL)              │
+│  travel / borrow / pay  Decay   │    │                                 │
+│      │                          │    │  Imports engine surface via     │
+│      ▼                          │    │  `from engine import *`         │
+│  Oracles:                       │    │                                 │
+│  has_any_option                 │    │                                 │
+│  is_bankrupt                    │    │                                 │
+│  is_game_over                   │    │                                 │
+└─────────────────────────────────┘    └─────────────────────────────────┘
+              ▲
+              │ also imported by
+              │
+       ┌──────┴──────┐
+       │ simulate.py │  headless policy runner for balance testing
+       └─────────────┘
 ```
+
+## The engine ↔ frontend contract
+
+- Action functions (`do_*`) return `(ok: bool, msg: str)` and mutate the state dict in place. The message is plain user-facing text — no ANSI codes — so any frontend can render it as-is.
+- Two presentation hints live on the state: `state["message"]` for the most recent action result, `state["last_event"]` for the daily event banner. The engine writes, the frontend reads and clears.
+- End-condition checks are pure-bool functions in the engine: `is_bankrupt(state)`, `is_game_over(state)`. The frontend owns the rendering of bankruptcy / game-over screens.
+- Engine knows nothing about the frontend. Add new mechanics in `engine.py` first; then wire UI for them in each frontend.
 
 ## Key data shapes
 

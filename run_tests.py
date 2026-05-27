@@ -18,7 +18,7 @@ from contextlib import redirect_stdout
 
 # Files we care about. Other project files (simulate.py, test_*.py) are
 # excluded from the gate but tracked for visibility.
-TARGET_FILES = ["hallucination_inc.py"]
+TARGET_FILES = ["engine.py", "hallucination_inc.py"]
 COVERAGE_THRESHOLD = 90.0
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 

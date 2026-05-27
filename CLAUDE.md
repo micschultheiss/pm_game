@@ -4,15 +4,20 @@ Context for Claude Code when working in this repo.
 
 ## What this is
 
-A single-file Python terminal game (`hallucination_inc.py`, banner title "HALLUCINATION INC.") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
+A Python terminal game (banner title "HALLUCINATION INC.") that reskins the Drug Wars economic loop for AI product management. Players buy LLM tokens from providers, craft SaaS products from recipes, and sell to enterprise/government clients before debt eats their runway.
+
+The codebase is split into an **engine** (pure game logic) and **frontends** (presentation). The terminal is the only frontend today; a web frontend is planned and will reuse the same engine.
 
 See [README.md](README.md) for how to run it and [docs/Hallucination_Inc_PRD.md](docs/Hallucination_Inc_PRD.md) for the full product spec.
 
 ## Layout
 
 ```
-hallucination_inc.py            # the entire game — one file, stdlib only
+engine.py             # pure game logic — state, actions, time, oracles. No I/O.
+hallucination_inc.py  # terminal frontend (UI + REPL); entry point: `python3 hallucination_inc.py`
 simulate.py           # headless runner used to balance/regression-test the loop
+test_hallucination_inc.py  # unittest suite covering engine + terminal frontend
+run_tests.py          # coverage-gated test runner
 TODO.md               # working backlog
 docs/Hallucination_Inc_PRD.md   # canonical product requirements
 docs/                 # architecture, ADRs, game design notes
@@ -21,7 +26,8 @@ docs/                 # architecture, ADRs, game design notes
 ## Conventions
 
 - **Python 3.8+, standard library only.** No `pip install`, no external deps. Do not add any.
-- **One file.** `hallucination_inc.py` is intentionally monolithic. Don't split it into a package unless the user asks — the single-file constraint is part of the project's character.
+- **Engine / frontend separation.** All game logic lives in `engine.py`. Frontends import from it; they never reimplement rules. New mechanics go in `engine.py` first, then each frontend wires up its own UI for them.
+- **Action functions return `(ok, msg)`.** The `msg` is plain user-facing text with no ANSI codes — frontends render it as-is. `state["message"]` and `state["last_event"]` are the documented hand-off: engine writes, frontends read + clear.
 - **Tone is meme-y on purpose.** UI copy, event headlines, and end-game grades are written with PM/AI satire. Keep that register when adding events, clients, or end-screen text.
 
 ## Load-bearing mechanics — do not simplify

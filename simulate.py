@@ -20,7 +20,7 @@ import statistics
 import sys
 from collections import Counter, defaultdict
 
-import hallucination_inc as g
+import engine as g
 
 
 # ─────────────────────────────────────────────
