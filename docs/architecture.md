@@ -6,7 +6,7 @@ Hallucination Inc. is a single-process Python terminal game split across three m
 
 - **`engine.py`** — pure game logic (constants, state, actions, time, oracles). No I/O.
 - **`terminal.py`** — the terminal frontend. ANSI-coloured UI, menus, prompts, REPL.
-- **`hallucination_inc.py`** — entry point. Dispatches to a frontend (terminal today, web later) and also acts as a transitional compatibility shim re-exporting engine + terminal symbols for the existing test suite.
+- **`hallucination_inc.py`** — entry point. A 15-line launcher that dispatches to a frontend (terminal today, web later).
 
 A separate [simulate.py](../simulate.py) imports `engine` directly to drive headless games for balance testing. A web frontend is planned and will plug in alongside the terminal as a peer frontend, importing the same engine.
 
@@ -17,13 +17,13 @@ There is no server, no database, no save file, no network call (yet). A run star
 ```
                   ┌──────────────────────────────┐
                   │     hallucination_inc.py     │
-                  │      (entry point + shim)    │
+                  │       (entry point)          │
                   │                              │
                   │  main() dispatches to a      │
                   │  frontend (terminal today,   │
-                  │  web later). Re-exports      │
-                  │  engine + terminal for       │
-                  │  tests during transition.    │
+                  │  web later). Thin launcher,  │
+                  │  ~15 lines total.            │
+                  │                              │
                   └──────────────┬───────────────┘
                                  │ dispatches to
                                  ▼

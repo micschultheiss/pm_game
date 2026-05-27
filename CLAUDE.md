@@ -16,9 +16,10 @@ See [README.md](README.md) for how to run it and [docs/Hallucination_Inc_PRD.md]
 engine.py             # pure game logic — state, actions, time, oracles. No I/O.
 terminal.py           # terminal frontend — ANSI UI, menus, prompts, REPL.
 hallucination_inc.py  # entry point — dispatches to a frontend (terminal today, web later).
-                      # Also a transitional shim re-exporting engine + terminal for tests.
 simulate.py           # headless runner used to balance/regression-test the loop
-test_hallucination_inc.py  # unittest suite covering engine + terminal frontend
+test_engine.py        # unittest suite for engine logic
+test_terminal.py      # unittest suite for terminal frontend
+test_helpers.py       # shared test helpers (state builders, stdout capture)
 run_tests.py          # coverage-gated test runner (tracks engine.py + terminal.py)
 TODO.md               # working backlog
 docs/Hallucination_Inc_PRD.md   # canonical product requirements

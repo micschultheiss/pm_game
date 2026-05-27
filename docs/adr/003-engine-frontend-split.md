@@ -33,9 +33,9 @@ State stays a plain dict, by ADR 002. Two fields are the documented hand-off bet
 - `state["message"]` — the latest action result, written by engine, read + cleared by frontend.
 - `state["last_event"]` — daily event banner, same contract.
 
-## Transitional compatibility
+## Transitional compatibility (resolved in step 3)
 
-`test_hallucination_inc.py` covers both engine and terminal symbols via `import hallucination_inc as g`. Rather than split the tests now, `hallucination_inc.py` re-exports the engine surface via `from engine import *` *and* explicitly re-imports the `_`-prefixed engine helpers the tests touch. This keeps 154 tests green during the transition. The plan is to split the test file along the new module boundary in a later step and drop the private-symbol re-exports.
+Initially `test_hallucination_inc.py` covered both engine and terminal symbols via `import hallucination_inc as g`, so `hallucination_inc.py` re-exported the engine surface (plus `_`-prefixed helpers) as a compatibility shim. **Step 3 of the split (commit on 2026-05-27) replaced that shim:** the test file split into `test_engine.py` and `test_terminal.py` — with shared fixtures in `test_helpers.py` — and they import the respective modules directly. `hallucination_inc.py` is now a 15-line launcher: `from terminal import main; main()`.
 
 ## Consequences
 
