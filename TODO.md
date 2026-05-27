@@ -7,6 +7,9 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [x] Make empty enter the next turn
 - [x] Rebalance the game mechanics (planner win 44% → 58%, median NW $35K → $169K after 5-variant pass)
 - [x] Sort the travel destinations (customers as on the customer list)
+- [x] Randomize starting provider — each run opens at a different lab
+- [x] Show full provider price grid consistently — always on the dashboard and at the top of the travel menu (peer to the open-contracts board)
+- [x] Widen lower-tier price variance — dropped the $5 floor that was flatlining Google/Mistral/Meta to a uniform $5
 - [ ] Add proper unit tests and test coverage as a pre-commit mechanics
 - [ ] Refactor and structure the app, different modules, e.g. engine and representation layer to preempt 2nd frontend
 
@@ -17,7 +20,9 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [x] Tune debt interest vs. starting cash after recent rebalance (5% → 3% + debt-free bonus)
 - [x] Buff Brand Asset Generator — added to Walmart/Salesforce wants, base value $55K → $65K (share 0.3% → 1.0%)
 - [x] Rescue Meta provider — quality 0.50 → 0.55 (now visited 181 times in 10K planner games)
-- [ ] Rescue Mistral provider — Meta now eclipses it on every dimension; bump Mistral quality 0.62 → 0.68 to carve a niche between Meta and Google
+- [x] ~~Rescue Mistral provider~~ — resolved by the price-variance fix; 1000-run planner sim shows Mistral 173 visits vs. Meta 108, so Mistral is no longer eclipsed
+- [ ] Brand Asset Generator still uneconomical — despite the buff, only 15 builds (0.6% share) across 1000 planner runs. 100% conversion when built, so demand is fine; recipe economics still don't compete. Try: lower Code requirement, raise base value, or add a higher-tier client to its wants list.
+- [ ] Compliance Dashboard drift/decay — 24% of planner builds but only 52% conversion across 1000 runs. The 6-day build outpaces drift/decay; half end up unsellable. Options: shorten craft_days to 5, lower decay sensitivity for slow products, or split into two cheaper variants.
 
 ## Later / ideas
 
