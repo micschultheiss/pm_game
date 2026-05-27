@@ -14,14 +14,19 @@ See [README.md](README.md) for how to run it and [docs/Hallucination_Inc_PRD.md]
 
 ```
 engine.py             # pure game logic — state, actions, time, oracles. No I/O.
-hallucination_inc.py  # terminal frontend (UI + REPL); entry point: `python3 hallucination_inc.py`
+terminal.py           # terminal frontend — ANSI UI, menus, prompts, REPL.
+hallucination_inc.py  # entry point — dispatches to a frontend (terminal today, web later).
+                      # Also a transitional shim re-exporting engine + terminal for tests.
 simulate.py           # headless runner used to balance/regression-test the loop
 test_hallucination_inc.py  # unittest suite covering engine + terminal frontend
-run_tests.py          # coverage-gated test runner
+run_tests.py          # coverage-gated test runner (tracks engine.py + terminal.py)
 TODO.md               # working backlog
 docs/Hallucination_Inc_PRD.md   # canonical product requirements
 docs/                 # architecture, ADRs, game design notes
 ```
+
+Run with `python3 hallucination_inc.py` (the canonical entry point) or
+`python3 -m terminal` if you want to skip the launcher.
 
 ## Conventions
 

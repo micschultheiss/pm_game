@@ -2,25 +2,43 @@
 
 ## Overview
 
-Hallucination Inc. is a single-process Python terminal game split across two modules: a pure **engine** (`engine.py`) and a **terminal frontend** (`hallucination_inc.py`). A separate [simulate.py](../simulate.py) drives the engine headlessly for balance testing. A web frontend is planned and will reuse the same engine.
+Hallucination Inc. is a single-process Python terminal game split across three modules:
 
-There is no server, no database, no save file, no network call. A run starts when you invoke `python3 hallucination_inc.py` and ends when the player quits, runs out of days, or goes bankrupt.
+- **`engine.py`** — pure game logic (constants, state, actions, time, oracles). No I/O.
+- **`terminal.py`** — the terminal frontend. ANSI-coloured UI, menus, prompts, REPL.
+- **`hallucination_inc.py`** — entry point. Dispatches to a frontend (terminal today, web later) and also acts as a transitional compatibility shim re-exporting engine + terminal symbols for the existing test suite.
+
+A separate [simulate.py](../simulate.py) imports `engine` directly to drive headless games for balance testing. A web frontend is planned and will plug in alongside the terminal as a peer frontend, importing the same engine.
+
+There is no server, no database, no save file, no network call (yet). A run starts when you invoke `python3 hallucination_inc.py` and ends when the player quits, runs out of days, or goes bankrupt.
 
 ## Components
 
 ```
+                  ┌──────────────────────────────┐
+                  │     hallucination_inc.py     │
+                  │      (entry point + shim)    │
+                  │                              │
+                  │  main() dispatches to a      │
+                  │  frontend (terminal today,   │
+                  │  web later). Re-exports      │
+                  │  engine + terminal for       │
+                  │  tests during transition.    │
+                  └──────────────┬───────────────┘
+                                 │ dispatches to
+                                 ▼
 ┌─────────────────────────────────┐    ┌─────────────────────────────────┐
-│           engine.py             │    │     hallucination_inc.py        │
+│           engine.py             │◀───│         terminal.py             │
 │      (pure game logic)          │    │     (terminal frontend)         │
 │                                 │    │                                 │
 │  Constants ─▶ State ─▶ Tick     │    │  Header / panels / show_*       │
-│      │                  │       │◀───│  prompt_int / prompt_str        │
+│      │                  │       │    │  prompt_int / prompt_str        │
 │      ▼                  ▼       │    │  menu_buy / craft / sell / …    │
 │  Actions:               Events  │    │  bankruptcy_screen / end_screen │
 │  do_buy / craft / sell  Drift   │    │  game_loop  (REPL)              │
 │  travel / borrow / pay  Decay   │    │                                 │
-│      │                          │    │  Imports engine surface via     │
-│      ▼                          │    │  `from engine import *`         │
+│      │                          │    │  Imports engine symbols         │
+│      ▼                          │    │  it needs explicitly.           │
 │  Oracles:                       │    │                                 │
 │  has_any_option                 │    │                                 │
 │  is_bankrupt                    │    │                                 │

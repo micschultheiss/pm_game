@@ -4,9 +4,8 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-- [ ] Step 2 of engine split — rename the terminal half to its own `terminal.py` file and shrink `hallucination_inc.py` to a thin entry-point launcher
-- [ ] Step 3 of engine split — point `test_hallucination_inc.py` at `engine` directly for engine-level tests, leave terminal-level tests on the terminal module, drop the private-symbol re-exports
-- [ ] Step 4 of engine split — `web.py` Flask frontend reusing the engine
+- [ ] Step 3 of engine split — split `test_hallucination_inc.py` along the new module boundary (engine-level tests import `engine`, terminal-level tests import `terminal`); drop the private-symbol re-exports from the `hallucination_inc.py` shim
+- [ ] Step 4 of engine split — `web.py` Flask frontend reusing the engine; wire `--web` dispatch into `hallucination_inc.py`
 
 ## Next
 
@@ -24,6 +23,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Done
 
+- [x] Step 2 of engine split — UI moved into its own `terminal.py`; `hallucination_inc.py` is now a thin entry-point launcher plus a transitional compat shim for `import hallucination_inc as g`. Dropped a stray duplicate `compute_market_demand` that lived in both engine and terminal. Coverage gate now tracks `engine.py` + `terminal.py` (the launcher is pure import-time glue, not worth gating). 154 tests still pass; coverage 92.7% engine, 96.0% terminal.
 - [x] Step 1 of engine split — extracted `engine.py` (pure logic), kept `hallucination_inc.py` as terminal frontend re-exporting engine surface for test compatibility. Added `is_bankrupt` / `is_game_over` oracles. simulate.py now imports `engine` directly. 154 tests still pass; coverage 91% engine, 95.5% terminal.
 - [x] Add unit tests + 90% stdlib coverage gate wired into pre-commit (current: 95.6% on hallucination_inc.py, 154 tests)
 - [x] Make empty enter the next turn
