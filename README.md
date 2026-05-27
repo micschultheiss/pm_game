@@ -6,11 +6,12 @@ Hallucination Inc. is a simple game that reimagines the Drug Wars economic loop 
 
 ## Gameplay at a glance
 
-- **30 in-game days** to turn a starting balance of $35,000 (and $300,000 of debt) into a profitable AI SaaS business.
-- **Buy tokens** (Code, Reasoning, Image, Voice, Video) from providers like Anthropic, OpenAI, Google, Meta, and Mistral. Each provider has its own quality tier and price curve.
-- **Craft products** (e.g. AI Customer Support, and others) using token recipes — higher-quality tokens yield higher-quality products, but cost more.
+- **30 in-game days** to turn $100,000 cash + $100,000 of debt into a profitable AI SaaS business. Pay the debt off before day 30 for a $75,000 debt-free bonus.
+- **Buy tokens** (Code, Reasoning, Image, Voice, Video) from providers like Anthropic, OpenAI, Google, Meta, and Mistral. Each provider has its own quality tier and price curve, and prices jitter daily.
+- **Craft products** (e.g. AI Customer Support, Compliance Dashboard, AI Security Scanner) using token recipes — higher-quality tokens yield higher-quality products, but cost more.
 - **Sell** to rotating enterprise and government clients whose budgets and wants drift, drop, and appear over time.
-- **Watch the clock**: debt compounds at 2% per day, products decay, and the market shifts under you.
+- **Watch the clock**: debt compounds at 3% per day, products decay, and the market shifts under you.
+- Each run **starts at a random provider** and opens with a full market-price grid so you can plan your first move with full information.
 
 ## Requirements
 
@@ -29,11 +30,23 @@ The game runs entirely in the terminal with text prompts.
 
 ```
 pm_game/
-├── hallucination_inc.py         # the game
-├── docs/
-│   └── Hallucination_Inc_PRD.md # product requirements doc
-└── README.md
+├── hallucination_inc.py          # the game — single file, stdlib only
+├── simulate.py                   # headless runner for balance / regression testing
+├── README.md
+├── CLAUDE.md                     # repo conventions for AI-assisted edits
+├── TODO.md                       # working backlog
+├── .github/
+│   └── NOTES.md                  # running log of behaviour / decision changes
+└── docs/
+    ├── Hallucination_Inc_PRD.md  # canonical product requirements
+    ├── architecture.md           # high-level architecture overview
+    ├── game-design.md            # design notes and balance rationale
+    └── adr/                      # architecture decision records
+        ├── 001-tech-stack.md
+        └── 002-game-state.md
 ```
+
+`hallucination_inc.py` is intentionally monolithic (the single-file constraint is part of the project's character). `simulate.py` plays headless games against several policies (random / greedy / planner) and prints win-rate, bankruptcy, and product-mix stats — used to validate any balance change.
 
 ## Status
 
