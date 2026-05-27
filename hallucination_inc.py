@@ -372,7 +372,7 @@ def new_game():
         "message":          None,
         "next_rotation":    0,
     }
-    state["location"] = list(PROVIDERS.keys())[0]
+    state["location"] = random.choice(list(PROVIDERS.keys()))
     state["location_type"] = "provider"
     refresh_provider_prices(state)
     rotate_clients(state)
