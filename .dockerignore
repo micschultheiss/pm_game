@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.DS_Store
+docs/
+*.md
+test_*.py
+test_helpers.py
+run_tests.py
+simulate.py
+.github/
+.venv/
+venv/

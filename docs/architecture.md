@@ -100,6 +100,12 @@ Any new action that costs or produces resources has to be reflected in the oracl
 
 `simulate.py` imports `hallucination_inc` and runs N headless games with a scripted or random policy. It's used for balance work — comparing win/loss/bankruptcy distributions across rule changes — not as part of the player experience.
 
+## Deployment
+
+The web frontend ships as a single Docker container on **Fly.io**, region `fra`, running gunicorn with **one worker** so the in-memory `_games` dict stays consistent. Machines are pinned warm (`auto_stop_machines = "off"`, `min_machines_running = 1`) — scale-to-zero or multi-worker would wipe in-progress runs. Deploys are manual (`fly deploy`) and restart the machine, dropping any active sessions; this is acknowledged.
+
+Configuration lives in the repo root: [`Dockerfile`](../Dockerfile), [`fly.toml`](../fly.toml), [`.dockerignore`](../.dockerignore). See [ADR 004](adr/004-deployment-flyio.md) for the rationale, alternatives, and the prerequisites for relaxing the single-instance constraint.
+
 ## Why this shape
 
 - **One file, stdlib only.** Easy to read, easy to fork, easy to share. The whole project fits in a tab.

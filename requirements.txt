@@ -2,3 +2,4 @@
 # The terminal frontend and simulator use the standard library only —
 # they do not require anything from this file.
 flask>=3.0
+gunicorn>=21.2

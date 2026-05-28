@@ -5,7 +5,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 ## Now
 
 - [ ] Add smoke tests for `web.py` (Flask test client: GET / on a fresh session, POST /buy round-trip, POST /new resets state); decide whether to coverage-gate it
-- [ ] Decide on a hosting story for the web frontend — Cloudflare Tunnel for sharing now, Fly.io / Render for a stable URL later
+- [ ] Run the first `fly launch` + `fly deploy` to publish the web frontend at `hallucination-inc.fly.dev` (deploy config now in repo — see [ADR 004](docs/adr/004-deployment-flyio.md))
 
 ## Next
 
@@ -20,6 +20,8 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [ ] Optional local session summary file for tracking runs
 - [ ] End-of-run "what if" replay showing the best missed move
 - [ ] Think about different pricing models like yearly licences, seat based pricing etc
+- [ ] Wire a GitHub Actions deploy pipeline (`run_tests.py` → `flyctl deploy --remote-only`) once a second contributor joins or we want auto-deploy on `main` push
+- [ ] Externalize `_games` to Redis or SQLite so deploys / multi-worker / scale-to-zero stop wiping in-progress runs
 
 ## Done
 
