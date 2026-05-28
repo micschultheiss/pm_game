@@ -19,10 +19,12 @@ web.py                # Flask web frontend — HTTP server, HTML rendering, in-m
 templates/, static/   # Jinja2 templates + CSS for the web frontend.
 hallucination_inc.py  # entry point — dispatches to a frontend (terminal default, `--web` for Flask).
 simulate.py           # headless runner used to balance/regression-test the loop
-test_engine.py        # unittest suite for engine logic
-test_terminal.py      # unittest suite for terminal frontend
-test_helpers.py       # shared test helpers (state builders, stdout capture)
-run_tests.py          # coverage-gated test runner (tracks engine.py + terminal.py)
+tests/                # unittest suites (run via run_tests.py):
+  test_engine.py      #   engine logic
+  test_terminal.py    #   terminal frontend
+  test_web.py         #   Flask web frontend
+  test_helpers.py     #   shared test helpers (state builders, stdout capture)
+run_tests.py          # coverage-gated test runner (tracks engine.py, terminal.py, web.py)
 requirements.txt      # web-frontend dependencies (Flask). Not needed for terminal or sim.
 TODO.md               # working backlog
 docs/Hallucination_Inc_PRD.md   # canonical product requirements

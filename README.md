@@ -51,9 +51,11 @@ pm_game/
 ├── templates/, static/           # web frontend assets
 ├── hallucination_inc.py          # entry point — dispatches terminal / --web
 ├── simulate.py                   # headless runner for balance / regression testing
-├── test_engine.py                # unittest suite — engine logic
-├── test_terminal.py              # unittest suite — terminal frontend
-├── test_helpers.py               # shared test fixtures
+├── tests/                        # unittest suites
+│   ├── test_engine.py            #   engine logic
+│   ├── test_terminal.py          #   terminal frontend
+│   ├── test_web.py               #   Flask web frontend
+│   └── test_helpers.py           #   shared test fixtures
 ├── run_tests.py                  # stdlib coverage runner (90% gate)
 ├── requirements.txt              # web-frontend dependencies (Flask)
 ├── scripts/

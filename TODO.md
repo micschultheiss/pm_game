@@ -23,6 +23,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Done
 
+- [x] Move the test suite into a `tests/` directory — relocated `test_engine.py`, `test_terminal.py`, `test_web.py`, `test_helpers.py` via `git mv`; `run_tests.py` discovers `tests/` and pins `PROJECT_ROOT` on `sys.path`; pre-commit pattern + docs updated. 190 tests pass, coverage unchanged.
 - [x] Add smoke tests for `web.py` — `test_web.py` covers the welcome → game flow, each action route round-trip + validation branches, `/new` reset, the stale-session bailout, every view helper, and both end screens. Added to the coverage gate; 100% on 208 stmts. Total suite now 190 tests.
 - [x] Publish the web frontend on Fly.io (`hallucination-inc.fly.dev`) — first `fly launch` + `fly deploy` ran against the config from [ADR 004](docs/adr/004-deployment-flyio.md) (Dockerfile + fly.toml, region fra, single warm machine).
 - [x] Wire GitHub Actions deploy pipeline — [.github/workflows/fly-deploy.yml](.github/workflows/fly-deploy.yml) runs `flyctl deploy --remote-only` on every push to `main`.

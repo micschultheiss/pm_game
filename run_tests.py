@@ -21,6 +21,12 @@ from contextlib import redirect_stdout
 TARGET_FILES = ["engine.py", "terminal.py", "web.py"]
 COVERAGE_THRESHOLD = 90.0
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+TESTS_DIR = os.path.join(PROJECT_ROOT, "tests")
+
+# Tests live in tests/ but import the modules under test (engine, terminal,
+# web) from the project root, so make sure both are importable regardless of
+# the cwd the runner is invoked from.
+sys.path.insert(0, PROJECT_ROOT)
 
 
 def executable_lines(filepath):
@@ -56,7 +62,7 @@ def covered_lines(tracer_counts, target_path):
 
 def _discover_suite():
     loader = unittest.TestLoader()
-    return loader.discover(PROJECT_ROOT, pattern="test_*.py")
+    return loader.discover(TESTS_DIR, pattern="test_*.py")
 
 
 def run_tests_with_coverage(verbosity=1, quiet_app_output=True):
