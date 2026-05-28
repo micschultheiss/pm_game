@@ -58,9 +58,17 @@ def _get_or_create_session():
     return sid, _games[sid]
 
 
-def _get_or_create_state():
-    """Convenience wrapper for routes that only care about the engine state."""
+def _get_active_state():
+    """For action routes: return (sid, state) only if there's a started game.
+
+    Returns (sid, None) when the session is missing or hasn't been started
+    — typically because the server was restarted and the browser is POSTing
+    against a stale cookie. Caller should redirect home so the welcome
+    screen renders instead of silently running the action on a fresh state.
+    """
     sid, sess = _get_or_create_session()
+    if not sess["started"]:
+        return sid, None
     return sid, sess["state"]
 
 
@@ -171,7 +179,9 @@ def new_game():
 
 @app.post("/buy")
 def buy():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     token = request.form.get("token")
     qty = _parse_int(request.form.get("qty"))
     if state["location_type"] != "provider":
@@ -187,7 +197,9 @@ def buy():
 
 @app.post("/craft")
 def craft():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     product = request.form.get("product")
     if product not in engine.PRODUCTS:
         state["message"] = "Unknown product."
@@ -198,7 +210,9 @@ def craft():
 
 @app.post("/sell")
 def sell():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     if state["location_type"] != "client":
         state["message"] = "You need to be at a client to sell."
         return _redirect_home(sid)
@@ -220,7 +234,9 @@ def sell():
 
 @app.post("/travel")
 def travel():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     dest_name = request.form.get("dest_name")
     dest_type = request.form.get("dest_type")
     if dest_type not in ("provider", "client") or not dest_name:
@@ -232,7 +248,9 @@ def travel():
 
 @app.post("/next")
 def next_day():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     engine.advance_days(state, 1)
     if not state.get("message"):
         state["message"] = "Day advanced."
@@ -241,7 +259,9 @@ def next_day():
 
 @app.post("/borrow")
 def borrow():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     amount = _parse_int(request.form.get("amount"))
     if amount is None or amount <= 0:
         state["message"] = "Enter a positive amount."
@@ -252,7 +272,9 @@ def borrow():
 
 @app.post("/pay")
 def pay():
-    sid, state = _get_or_create_state()
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
     amount = _parse_int(request.form.get("amount"))
     if amount is None or amount <= 0:
         state["message"] = "Enter a positive amount."
