@@ -327,18 +327,9 @@
   <form method="post" action="{{ url_for('next_day') }}" class="next-form">
     <button type="submit" class="primary">Next day →</button>
   </form>
-  <form method="post" action="{{ url_for('new_game') }}" class="reset-form"
-        onsubmit="return confirm('Abandon this run and start over?');">
-    <button type="submit" class="danger">Reset game</button>
-  </form>
 </section>
 
 {% endif %}
-
-<footer class="footer muted">
-  Engine: <code>engine.py</code> · Frontend: <code>web.py</code> ·
-  <a href="https://github.com/micschultheiss/pm_game">source</a>
-</footer>
 
 </main>
 </body>
