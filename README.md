@@ -25,20 +25,20 @@ Hallucination Inc. is a simple game that reimagines the Drug Wars economic loop 
 # Terminal frontend (default — standard library only)
 python3 hallucination_inc.py
 
-# Web frontend (Flask) — http://localhost:5000
+# Web frontend (Flask) — http://localhost:5050
 pip install -r requirements.txt
 python3 hallucination_inc.py --web
 ```
 
 The terminal frontend runs entirely with text prompts. The web frontend
 serves an HTML page that mirrors the terminal layout, with one game per
-browser cookie. Override the port with `PORT=5050 python3 hallucination_inc.py --web`.
+browser cookie. Override the port with `PORT=8080 python3 hallucination_inc.py --web`.
 
 To expose the web frontend over the internet for ad-hoc sharing:
 
 ```bash
 # In another terminal:
-cloudflared tunnel --url http://localhost:5000
+cloudflared tunnel --url http://localhost:5050
 ```
 
 ## Project structure

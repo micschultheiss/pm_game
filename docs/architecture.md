@@ -11,7 +11,7 @@ Hallucination Inc. is a Python game split across an engine and two peer frontend
 
 A separate [simulate.py](../simulate.py) imports `engine` directly to drive headless games for balance testing.
 
-The terminal frontend runs in-process; the web frontend boots Flask's dev server on `0.0.0.0:5000` (override via `PORT`) and keeps games in a module-level dict keyed by a cookie session id. Restarting the web server drops in-progress runs — there is no database, no save file. A run ends when the player quits, runs out of days, or goes bankrupt.
+The terminal frontend runs in-process; the web frontend boots Flask's dev server on `0.0.0.0:5050` (override via `PORT`) and keeps games in a module-level dict keyed by a cookie session id. Restarting the web server drops in-progress runs — there is no database, no save file. A run ends when the player quits, runs out of days, or goes bankrupt.
 
 ## Components
 

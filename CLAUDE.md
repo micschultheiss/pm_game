@@ -31,7 +31,7 @@ docs/                 # architecture, ADRs, game design notes
 
 Run terminal mode: `python3 hallucination_inc.py`.
 Run web mode: `pip install -r requirements.txt && python3 hallucination_inc.py --web`
-(serves on http://localhost:5000).
+(serves on http://localhost:5050).
 
 ## Conventions
 

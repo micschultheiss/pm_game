@@ -394,7 +394,7 @@ def main():
     """Launch the dev server. Binds to 0.0.0.0 so the app is reachable over
     LAN or a Cloudflare Tunnel without extra config."""
     host = os.environ.get("HOST", "0.0.0.0")
-    port = int(os.environ.get("PORT", "5000"))
+    port = int(os.environ.get("PORT", "5050"))
     print(f"Hallucination Inc. — web frontend at http://localhost:{port}")
     app.run(host=host, port=port, debug=False)
 
