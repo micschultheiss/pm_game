@@ -102,7 +102,7 @@ Any new action that costs or produces resources has to be reflected in the oracl
 
 ## Deployment
 
-The web frontend ships as a single Docker container on **Fly.io**, region `fra`, running gunicorn with **one worker** so the in-memory `_games` dict stays consistent. Machines are pinned warm (`auto_stop_machines = "off"`, `min_machines_running = 1`) — scale-to-zero or multi-worker would wipe in-progress runs. Deploys are manual (`fly deploy`) and restart the machine, dropping any active sessions; this is acknowledged.
+The web frontend ships as a single Docker container on **Fly.io**, region `fra`, running gunicorn with **one worker** so the in-memory `_games` dict stays consistent. Machines are pinned warm (`auto_stop_machines = "off"`, `min_machines_running = 1`) — scale-to-zero or multi-worker would wipe in-progress runs. Deploys run automatically via GitHub Actions ([`.github/workflows/fly-deploy.yml`](../.github/workflows/fly-deploy.yml)) on every push to `main`, and can also be triggered manually with `flyctl deploy`; either way the machine restarts, dropping any active sessions; this is acknowledged.
 
 Configuration lives in [`fly/`](../fly): [`Dockerfile`](../fly/Dockerfile), [`fly.toml`](../fly/fly.toml), [`.dockerignore`](../fly/.dockerignore). The build context stays at the repo root so the Dockerfile's `COPY . .` can reach the app source, so deploys pass the config explicitly: `flyctl deploy --config fly/fly.toml --dockerfile fly/Dockerfile --ignorefile fly/.dockerignore .`. See [ADR 004](adr/004-deployment-flyio.md) for the rationale, alternatives, and the prerequisites for relaxing the single-instance constraint.
 
