@@ -5,7 +5,6 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 ## Now
 
 - [ ] Add smoke tests for `web.py` (Flask test client: GET / on a fresh session, POST /buy round-trip, POST /new resets state); decide whether to coverage-gate it
-- [ ] Run the first `fly launch` + `fly deploy` to publish the web frontend at `hallucination-inc.fly.dev` (deploy config now in repo — see [ADR 004](docs/adr/004-deployment-flyio.md))
 
 ## Next
 
@@ -20,11 +19,12 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [ ] Optional local session summary file for tracking runs
 - [ ] End-of-run "what if" replay showing the best missed move
 - [ ] Think about different pricing models like yearly licences, seat based pricing etc
-- [ ] Wire a GitHub Actions deploy pipeline (`run_tests.py` → `flyctl deploy --remote-only`) once a second contributor joins or we want auto-deploy on `main` push
 - [ ] Externalize `_games` to Redis or SQLite so deploys / multi-worker / scale-to-zero stop wiping in-progress runs
 
 ## Done
 
+- [x] Publish the web frontend on Fly.io (`hallucination-inc.fly.dev`) — first `fly launch` + `fly deploy` ran against the config from [ADR 004](docs/adr/004-deployment-flyio.md) (Dockerfile + fly.toml, region fra, single warm machine).
+- [x] Wire GitHub Actions deploy pipeline — [.github/workflows/fly-deploy.yml](.github/workflows/fly-deploy.yml) runs `flyctl deploy --remote-only` on every push to `main`.
 - [x] Step 4 of engine split — `web.py` Flask frontend reusing the engine. Routes for buy/craft/sell/travel/next/borrow/pay/new; in-memory state keyed by a cookie session id; Jinja2 template + CSS that mirror the terminal layout (banner, market grid, contracts table, action menu). `python3 hallucination_inc.py --web` dispatches into it; default still runs the terminal. Engine and terminal stay stdlib-only — Flask is the only project dep, pinned in `requirements.txt`. Smoke-tested end to end via Flask dev server + curl.
 - [x] Step 3 of engine split — split `test_hallucination_inc.py` into `test_engine.py` (engine logic) + `test_terminal.py` (UI), with shared fixtures in `test_helpers.py`. Tests now import `engine` / `terminal` directly. `hallucination_inc.py` shed its re-export shim and is now a 15-line launcher (`from terminal import main; main()`). 154 tests still pass; coverage unchanged (92.7% engine, 96.0% terminal).
 - [x] Step 2 of engine split — UI moved into its own `terminal.py`; `hallucination_inc.py` is now a thin entry-point launcher plus a transitional compat shim for `import hallucination_inc as g`. Dropped a stray duplicate `compute_market_demand` that lived in both engine and terminal. Coverage gate now tracks `engine.py` + `terminal.py` (the launcher is pure import-time glue, not worth gating). 154 tests still pass; coverage 92.7% engine, 96.0% terminal.
