@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hallucination Inc.</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<main class="terminal welcome">
+
+  <header class="banner">
+    <div class="banner-row banner-row-title">
+      <strong>HALLUCINATION INC.</strong> — Where AI Meets Enterprise
+    </div>
+  </header>
+
+  <section class="intro">
+    <p>
+      AI is eating your lunch. You've just been laid off from your cushy PM gig
+      at one of the big tech giants — and now you're out to cash in on the
+      <strong>SaaSocalypse</strong>. Nobody has cracked enterprise-grade software
+      with the new AI coding tools yet. That's where you come in.
+    </p>
+
+    <p>
+      <strong>$100,000 in debt.</strong> <strong>3% interest per day.</strong>
+      <strong>{{ MAX_DAYS }} days</strong> to turn it into a real business.
+    </p>
+
+    <h2>The basics (in plain English)</h2>
+    <ul>
+      <li>
+        <strong>Tokens</strong> are the fuel AI runs on. You buy them by the
+        million from AI providers — the big labs like Anthropic, OpenAI, and
+        Google. Prices move daily, and pricier providers ship higher-quality
+        output.
+      </li>
+      <li>
+        <strong>Products</strong> are finished AI SaaS solutions — a support
+        bot, a compliance dashboard, and so on. You build each from a recipe
+        of tokens over a few days. Your pitch: reliable enterprise software,
+        shipped in days.
+      </li>
+      <li>
+        <strong>Clients</strong> are the companies and government agencies
+        that buy your products. {{ ACTIVE_CLIENT_COUNT }} are live at any
+        time. Each pays a fixed budget — but only if your product clears
+        their minimum quality bar.
+      </li>
+    </ul>
+
+    <h2>Your job</h2>
+    <p class="callout">
+      <strong>Buy tokens cheap</strong> →
+      <strong>build quality products</strong> →
+      <strong>sell for a profit</strong>,
+      all before your debt eats you alive.
+    </p>
+
+    <h2>Good to know</h2>
+    <ul>
+      <li>
+        You start with <strong>$100K cash</strong> and
+        <strong>$100K debt</strong> that grows <strong>3% a day</strong>.
+        Pay it off before day {{ MAX_DAYS }} for a
+        <strong>+${{ '{:,}'.format(DEBT_FREE_BONUS) }}</strong> debt-free bonus.
+      </li>
+      <li>A sales trip costs <strong>${{ '{:,}'.format(TRAVEL_COST) }}</strong> and burns a day.</li>
+      <li>Builds take <strong>2–6 days</strong> and <strong>50–225M tokens</strong>; storage caps at <strong>{{ MAX_TOKENS }}M</strong>.</li>
+      <li>{{ ACTIVE_CLIENT_COUNT }} clients live at once — they rotate every few days. Grab good deals fast.</li>
+      <li>Beating a client's quality bar pays up to <strong>1.5×</strong> the budget. Tokens and finished products lose quality as they age.</li>
+    </ul>
+
+    <p class="closer"><strong>{{ MAX_DAYS }} days on the clock.</strong> Good luck.</p>
+
+    <form method="post" action="{{ url_for('start_game') }}" class="start-form">
+      <button type="submit" class="primary big">Start the run →</button>
+    </form>
+  </section>
+
+  <footer class="footer muted">
+    Engine: <code>engine.py</code> · Frontend: <code>web.py</code> ·
+    <a href="https://github.com/micschultheiss/pm_game">source</a>
+  </footer>
+
+</main>
+</body>
+</html>

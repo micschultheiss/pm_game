@@ -29,7 +29,10 @@ import engine
 
 app = Flask(__name__)
 
-# In-memory store of games keyed by cookie session id.
+# In-memory store of games keyed by cookie session id. Each entry is
+# {"state": <engine state dict>, "started": bool}. The ``started`` flag is
+# a presentation concern: it gates the welcome screen, kept out of the
+# engine state to keep that dict's shape engine-pure.
 # Wiped on every server restart — fine for the casual-play stage.
 _games: dict = {}
 
@@ -41,14 +44,24 @@ COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
 # Session + action plumbing
 # ─────────────────────────────────────────────
 
-def _get_or_create_state():
-    """Return (sid, state). Creates a fresh game for new browsers."""
+def _new_session_entry():
+    return {"state": engine.new_game(), "started": False}
+
+
+def _get_or_create_session():
+    """Return (sid, session_dict). Creates a fresh game for new browsers."""
     sid = request.cookies.get(COOKIE_NAME)
     if sid and sid in _games:
         return sid, _games[sid]
     sid = secrets.token_urlsafe(16)
-    _games[sid] = engine.new_game()
+    _games[sid] = _new_session_entry()
     return sid, _games[sid]
+
+
+def _get_or_create_state():
+    """Convenience wrapper for routes that only care about the engine state."""
+    sid, sess = _get_or_create_session()
+    return sid, sess["state"]
 
 
 def _apply(state, result):
@@ -85,7 +98,21 @@ def _parse_int(raw):
 
 @app.route("/")
 def index():
-    sid, state = _get_or_create_state()
+    sid, sess = _get_or_create_session()
+    state = sess["state"]
+
+    # First visit (or after a fresh /new): show the story / intro screen.
+    if not sess["started"]:
+        resp = app.make_response(render_template(
+            "welcome.html",
+            MAX_DAYS=engine.MAX_DAYS,
+            ACTIVE_CLIENT_COUNT=engine.ACTIVE_CLIENT_COUNT,
+            TRAVEL_COST=engine.TRAVEL_COST,
+            DEBT_FREE_BONUS=engine.DEBT_FREE_BONUS,
+            MAX_TOKENS=engine.MAX_TOKENS,
+        ))
+        resp.set_cookie(COOKIE_NAME, sid, max_age=COOKIE_MAX_AGE, samesite="Lax")
+        return resp
 
     # Read-and-clear contract for transient hints. The terminal frontend
     # does the same: render once, then wipe.
@@ -126,10 +153,19 @@ def index():
     return resp
 
 
+@app.post("/start")
+def start_game():
+    """Dismiss the welcome screen and drop the player onto the game page."""
+    sid, sess = _get_or_create_session()
+    sess["started"] = True
+    return _redirect_home(sid)
+
+
 @app.post("/new")
 def new_game():
-    sid, _ = _get_or_create_state()
-    _games[sid] = engine.new_game()
+    """Wipe progress and return to the welcome screen."""
+    sid, _ = _get_or_create_session()
+    _games[sid] = _new_session_entry()
     return _redirect_home(sid)
 
 

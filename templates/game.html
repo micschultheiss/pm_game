@@ -57,28 +57,31 @@
 
 {# ─────────────────── Active game ─────────────────── #}
 
-<header class="banner">
+<header class="banner banner-compact">
   <div class="banner-row banner-row-title">
-    <strong>HALLUCINATION INC.</strong>
-    · Day {{ state.day }}/{{ MAX_DAYS }}
-    · 📍 {{ state.location }}
-    {%- if location_info.type == 'provider' %}
-      ({{ location_info.desc }}, {{ '{:.0%}'.format(location_info.quality) }})
-    {%- else %}
-      ({{ location_info.desc }})
-    {%- endif %}
-  </div>
-  <div class="banner-row">
-    💰 ${{ '{:,}'.format(state.cash) }}
-    &nbsp;&nbsp;&nbsp;💳 ${{ '{:,}'.format(state.debt) }}
-    &nbsp;&nbsp;&nbsp;📦 {{ token_total }}M / {{ MAX_TOKENS }}M
-    &nbsp;&nbsp;&nbsp;
-    {% if state.crafting %}
-      🔨 {{ state.crafting.name }}
-      ({{ state.crafting.days_left }}d, {{ '{:.0%}'.format(state.crafting.quality) }})
-    {% else %}
-      🔨 idle
-    {% endif %}
+    <span class="banner-title"><strong>HALLUCINATION INC.</strong></span>
+    <span class="sep">·</span>
+    <span class="banner-day">Day {{ state.day }}/{{ MAX_DAYS }}</span>
+    <span class="sep">·</span>
+    <span class="banner-loc">📍 {{ state.location }}
+      {%- if location_info.type == 'provider' %}
+        ({{ '{:.0%}'.format(location_info.quality) }})
+      {%- endif %}
+    </span>
+    <span class="sep">·</span>
+    <span class="banner-cash">💰 ${{ '{:,}'.format(state.cash) }}</span>
+    <span class="sep">·</span>
+    <span class="banner-debt">💳 ${{ '{:,}'.format(state.debt) }}</span>
+    <span class="sep">·</span>
+    <span class="banner-store">📦 {{ token_total }}M/{{ MAX_TOKENS }}M</span>
+    <span class="sep">·</span>
+    <span class="banner-craft">
+      {%- if state.crafting -%}
+        🔨 {{ state.crafting.name }} ({{ state.crafting.days_left }}d, {{ '{:.0%}'.format(state.crafting.quality) }})
+      {%- else -%}
+        🔨 idle
+      {%- endif -%}
+    </span>
   </div>
 </header>
 
@@ -179,134 +182,151 @@
   {% endif %}
 </section>
 
-{# Actions #}
+{# Actions — CSS-tabs pattern: hidden radios drive which form panel shows. #}
 <section class="actions">
-  <h2>Actions</h2>
+  <input type="radio" name="action-tab" id="tab-none" class="action-tab" checked>
+  {% if location_info.type == 'provider' %}<input type="radio" name="action-tab" id="tab-buy" class="action-tab">{% endif %}
+  {% if location_info.type == 'client' and not location_info.stale %}<input type="radio" name="action-tab" id="tab-sell" class="action-tab">{% endif %}
+  <input type="radio" name="action-tab" id="tab-craft" class="action-tab">
+  <input type="radio" name="action-tab" id="tab-travel" class="action-tab">
+  <input type="radio" name="action-tab" id="tab-borrow" class="action-tab">
+  <input type="radio" name="action-tab" id="tab-pay" class="action-tab">
 
-  {% if location_info.type == 'provider' %}
-    <details class="action">
-      <summary>[ Buy tokens ]</summary>
-      <form method="post" action="{{ url_for('buy') }}">
-        <label>Token
-          <select name="token">
-            {% for t in TOKEN_TYPES %}
-              <option value="{{ t }}">{{ t }} (${{ location_info.prices[t] }}/M)</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label>Qty (M)
-          <input name="qty" type="number" min="1" max="{{ token_free }}" required>
-        </label>
-        <button type="submit">Buy</button>
-        <span class="hint muted">Free storage: {{ token_free }}M</span>
-      </form>
-    </details>
-  {% endif %}
+  <nav class="action-menu" aria-label="Actions">
+    {% if location_info.type == 'provider' %}
+      <label for="tab-buy" class="tab">[ Buy ]</label>
+    {% endif %}
+    {% if location_info.type == 'client' and not location_info.stale %}
+      <label for="tab-sell" class="tab">[ Sell ]</label>
+    {% endif %}
+    <label for="tab-craft" class="tab">[ Craft ]</label>
+    <label for="tab-travel" class="tab">[ Travel ]</label>
+    <label for="tab-borrow" class="tab">[ Borrow ]</label>
+    <label for="tab-pay" class="tab">[ Pay ]</label>
+  </nav>
 
-  {% if location_info.type == 'client' and not location_info.stale %}
-    <details class="action">
-      <summary>[ Sell product ]</summary>
-      {% if sellables %}
-        <form method="post" action="{{ url_for('sell') }}">
+  <div class="action-panel">
+    {% if location_info.type == 'provider' %}
+      <div class="form form-buy">
+        <form method="post" action="{{ url_for('buy') }}">
+          <label>Token
+            <select name="token">
+              {% for t in TOKEN_TYPES %}
+                <option value="{{ t }}">{{ t }} (${{ location_info.prices[t] }}/M)</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Qty (M)
+            <input name="qty" type="number" min="1" max="{{ token_free }}" required>
+          </label>
+          <button type="submit">Buy</button>
+          <span class="hint muted">Free storage: {{ token_free }}M</span>
+        </form>
+      </div>
+    {% endif %}
+
+    {% if location_info.type == 'client' and not location_info.stale %}
+      <div class="form form-sell">
+        {% if sellables %}
+          <form method="post" action="{{ url_for('sell') }}">
+            <label>Product
+              <select name="product_idx">
+                {% for s in sellables %}
+                  <option value="{{ s.idx }}">
+                    {{ s.name }} — quality {{ '{:.0%}'.format(s.quality) }}
+                    (pays ${{ '{:,}'.format(s.budget) }}, needs ≥{{ '{:.0%}'.format(s.min_quality) }})
+                    {%- if not s.ok %} ⚠ under quality{% endif %}
+                  </option>
+                {% endfor %}
+              </select>
+            </label>
+            <button type="submit">Sell</button>
+          </form>
+        {% else %}
+          <p class="muted">No matching product / contract here.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="form form-craft">
+      {% if state.crafting %}
+        <p class="muted">Already crafting {{ state.crafting.name }}
+          ({{ state.crafting.days_left }}d left).</p>
+      {% else %}
+        <form method="post" action="{{ url_for('craft') }}">
           <label>Product
-            <select name="product_idx">
-              {% for s in sellables %}
-                <option value="{{ s.idx }}">
-                  {{ s.name }} — quality {{ '{:.0%}'.format(s.quality) }}
-                  (pays ${{ '{:,}'.format(s.budget) }}, needs ≥{{ '{:.0%}'.format(s.min_quality) }})
-                  {%- if not s.ok %} ⚠ under quality{% endif %}
+            <select name="product">
+              {% for name, prod in PRODUCTS.items() %}
+                <option value="{{ name }}">
+                  {{ name }} — {{ prod.craft_days }}d build,
+                  ${{ '{:,}'.format(prod.base_value) }} base
                 </option>
               {% endfor %}
             </select>
           </label>
-          <button type="submit">Sell</button>
+          <button type="submit">Craft</button>
         </form>
-      {% else %}
-        <p class="muted">No matching product / contract here.</p>
       {% endif %}
-    </details>
-  {% endif %}
+    </div>
 
-  <details class="action">
-    <summary>[ Craft ]</summary>
-    {% if state.crafting %}
-      <p class="muted">Already crafting {{ state.crafting.name }}
-        ({{ state.crafting.days_left }}d left).</p>
-    {% else %}
-      <form method="post" action="{{ url_for('craft') }}">
-        <label>Product
-          <select name="product">
-            {% for name, prod in PRODUCTS.items() %}
-              <option value="{{ name }}">
-                {{ name }} — {{ prod.craft_days }}d build,
-                ${{ '{:,}'.format(prod.base_value) }} base
-              </option>
-            {% endfor %}
+    <div class="form form-travel">
+      <form method="post" action="{{ url_for('travel') }}">
+        <label>Destination
+          <select name="dest" required onchange="
+            var [t, n] = this.value.split('|');
+            this.form.dest_type.value = t;
+            this.form.dest_name.value = n;
+          ">
+            <optgroup label="LLM Providers">
+              {% for p in destinations.providers %}
+                <option value="provider|{{ p.name }}">
+                  {{ p.name }} — {{ p.desc }}, quality {{ '{:.0%}'.format(p.quality) }}
+                </option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="Clients">
+              {% for c in destinations.clients %}
+                <option value="client|{{ c.name }}">
+                  [{{ c.tag }}] {{ c.name }}
+                  {%- if c.wants %} — wants: {{ c.wants|join(', ') }}{% else %} — (satisfied){% endif %}
+                </option>
+              {% endfor %}
+            </optgroup>
           </select>
         </label>
-        <button type="submit">Craft</button>
+        <input type="hidden" name="dest_type" value="provider">
+        <input type="hidden" name="dest_name" value="{{ destinations.providers[0].name if destinations.providers else '' }}">
+        <button type="submit">Travel</button>
+        <span class="hint muted">${{ '{:,}'.format(TRAVEL_COST) }} + 1 day</span>
       </form>
-    {% endif %}
-  </details>
+    </div>
 
-  <details class="action">
-    <summary>[ Travel ]&nbsp;<span class="muted hint">(${{ '{:,}'.format(TRAVEL_COST) }} + 1 day)</span></summary>
-    <form method="post" action="{{ url_for('travel') }}">
-      <label>Destination
-        <select name="dest" required onchange="
-          var [t, n] = this.value.split('|');
-          this.form.dest_type.value = t;
-          this.form.dest_name.value = n;
-        ">
-          <optgroup label="LLM Providers">
-            {% for p in destinations.providers %}
-              <option value="provider|{{ p.name }}">
-                {{ p.name }} — {{ p.desc }}, quality {{ '{:.0%}'.format(p.quality) }}
-              </option>
-            {% endfor %}
-          </optgroup>
-          <optgroup label="Clients">
-            {% for c in destinations.clients %}
-              <option value="client|{{ c.name }}">
-                [{{ c.tag }}] {{ c.name }}
-                {%- if c.wants %} — wants: {{ c.wants|join(', ') }}{% else %} — (satisfied){% endif %}
-              </option>
-            {% endfor %}
-          </optgroup>
-        </select>
-      </label>
-      <input type="hidden" name="dest_type" value="provider">
-      <input type="hidden" name="dest_name" value="{{ destinations.providers[0].name if destinations.providers else '' }}">
-      <button type="submit">Travel</button>
-    </form>
-  </details>
+    <div class="form form-borrow">
+      <form method="post" action="{{ url_for('borrow') }}">
+        <label>Amount $
+          <input name="amount" type="number" min="1" max="{{ borrow_available }}" required>
+        </label>
+        <button type="submit">Borrow</button>
+        <span class="hint muted">Avail ${{ '{:,}'.format(borrow_available) }} of ${{ '{:,}'.format(borrow_limit) }} line</span>
+      </form>
+    </div>
 
-  <details class="action">
-    <summary>[ Borrow ]&nbsp;<span class="muted hint">avail ${{ '{:,}'.format(borrow_available) }}</span></summary>
-    <form method="post" action="{{ url_for('borrow') }}">
-      <label>Amount $
-        <input name="amount" type="number" min="1" max="{{ borrow_available }}" required>
-      </label>
-      <button type="submit">Borrow</button>
-      <p class="hint muted">Collateral line: ${{ '{:,}'.format(borrow_limit) }} (30% of finished
-        product base value). Already drawn: ${{ '{:,}'.format(state.collateral_debt) }}.</p>
-    </form>
-  </details>
+    <div class="form form-pay">
+      <form method="post" action="{{ url_for('pay') }}">
+        <label>Amount $
+          <input name="amount" type="number" min="1" max="{{ state.cash }}" required>
+        </label>
+        <button type="submit">Pay</button>
+        <span class="hint muted">${{ '{:,}'.format(state.debt) }} outstanding</span>
+      </form>
+    </div>
+  </div>
+</section>
 
-  <details class="action">
-    <summary>[ Pay debt ]&nbsp;<span class="muted hint">${{ '{:,}'.format(state.debt) }} outstanding</span></summary>
-    <form method="post" action="{{ url_for('pay') }}">
-      <label>Amount $
-        <input name="amount" type="number" min="1" max="{{ state.cash }}" required>
-      </label>
-      <button type="submit">Pay</button>
-    </form>
-  </details>
-
+<section class="action-footer">
   <form method="post" action="{{ url_for('next_day') }}" class="next-form">
     <button type="submit" class="primary">Next day →</button>
   </form>
-
   <form method="post" action="{{ url_for('new_game') }}" class="reset-form"
         onsubmit="return confirm('Abandon this run and start over?');">
     <button type="submit" class="danger">Reset game</button>

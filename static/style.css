@@ -42,16 +42,25 @@ body {
 .banner {
   border-top: 2px double var(--rule);
   border-bottom: 2px double var(--rule);
-  padding: 12px 0;
+  padding: 10px 0;
   margin-bottom: 14px;
 }
 
-.banner-row {
-  white-space: pre-wrap;
-}
-
-.banner-row-title { font-size: 15px; }
+.banner-row { white-space: pre-wrap; }
+.banner-row-title { font-size: 14px; }
 .banner-row-title strong { color: var(--accent-bold); letter-spacing: 0.04em; }
+
+/* Compact one-line header used during a live run.
+ * Falls back to a wrapped row on narrow screens. */
+.banner-compact .banner-row-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  white-space: nowrap;
+}
+.banner-compact .sep { color: var(--fg-dim); }
+.banner-compact .banner-title { letter-spacing: 0.04em; }
 
 /* ─── Event + message banners ─────────────────────────────── */
 
@@ -125,7 +134,10 @@ tr.here td { color: var(--accent-bold); }
 
 td.muted, .muted { color: var(--fg-dim); }
 
-/* ─── Actions ──────────────────────────────────────────────── */
+/* ─── Actions (CSS-tabs pattern) ───────────────────────────── */
+/* Hidden radios pick which form panel is visible. Labels in
+ * .action-menu act as the one-line tab bar; .form panels are shown
+ * via the general-sibling combinator on the matching :checked input. */
 
 section.actions {
   margin-top: 18px;
@@ -133,34 +145,65 @@ section.actions {
   padding-top: 14px;
 }
 
-.action {
+.action-tab {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.action-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.action-menu .tab {
+  cursor: pointer;
+  user-select: none;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  padding: 4px 12px;
+  background: transparent;
+  white-space: nowrap;
+  transition: background 0.05s, color 0.05s;
+}
+.action-menu .tab:hover { background: rgba(98, 212, 255, 0.1); color: var(--accent-bold); }
+
+/* Selected tab highlight */
+#tab-buy:checked    ~ .action-menu label[for="tab-buy"],
+#tab-sell:checked   ~ .action-menu label[for="tab-sell"],
+#tab-craft:checked  ~ .action-menu label[for="tab-craft"],
+#tab-travel:checked ~ .action-menu label[for="tab-travel"],
+#tab-borrow:checked ~ .action-menu label[for="tab-borrow"],
+#tab-pay:checked    ~ .action-menu label[for="tab-pay"] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* All form panels hidden by default; reveal the matching one. */
+.action-panel { display: contents; }
+.action-panel .form { display: none; }
+
+#tab-buy:checked    ~ .action-panel .form-buy,
+#tab-sell:checked   ~ .action-panel .form-sell,
+#tab-craft:checked  ~ .action-panel .form-craft,
+#tab-travel:checked ~ .action-panel .form-travel,
+#tab-borrow:checked ~ .action-panel .form-borrow,
+#tab-pay:checked    ~ .action-panel .form-pay {
+  display: block;
+}
+
+.form {
+  background: var(--bg-elev);
   border: 1px solid var(--rule);
   border-radius: 3px;
-  background: var(--bg-elev);
-  padding: 6px 10px;
-  margin-bottom: 8px;
+  padding: 10px 12px;
 }
 
-.action summary {
-  cursor: pointer;
-  color: var(--accent);
-  list-style: none;
-  user-select: none;
-  padding: 2px 0;
-}
-
-.action summary::-webkit-details-marker { display: none; }
-.action summary:hover { color: var(--accent-bold); }
-
-.action[open] summary {
-  margin-bottom: 8px;
-  border-bottom: 1px dashed var(--rule);
-  padding-bottom: 6px;
-}
-
-.action form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-
-.action label { display: flex; gap: 6px; align-items: center; color: var(--fg-dim); }
+.form form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.form label { display: flex; gap: 6px; align-items: center; color: var(--fg-dim); }
 
 input, select {
   background: var(--bg);
@@ -191,11 +234,43 @@ button.primary { color: var(--good); border-color: var(--good); }
 button.primary:hover { background: rgba(125, 220, 139, 0.1); }
 button.danger { color: var(--danger); border-color: var(--danger); }
 button.danger:hover { background: rgba(255, 122, 122, 0.1); }
-
-.next-form { margin-top: 14px; }
-.reset-form { margin-top: 8px; }
+button.big { padding: 10px 24px; font-size: 15px; }
 
 .hint { font-size: 12px; margin-left: 4px; }
+
+/* Next + Reset row, separated from the action menu. */
+.action-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ─── Welcome screen ───────────────────────────────────────── */
+
+.welcome .intro { padding: 14px 0 24px; }
+.welcome .intro h2 {
+  font-size: 13px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 22px 0 8px;
+}
+.welcome .intro p { margin: 10px 0; }
+.welcome .intro ul { padding-left: 22px; margin: 8px 0; }
+.welcome .intro li { margin: 6px 0; }
+.welcome .intro .callout {
+  border-left: 3px solid var(--accent);
+  padding: 6px 12px;
+  background: var(--bg-elev);
+}
+.welcome .intro .closer {
+  margin-top: 20px;
+  color: var(--accent-bold);
+}
+.welcome .start-form { margin-top: 24px; text-align: center; }
 
 /* ─── End / bankruptcy screens ─────────────────────────────── */
 
