@@ -20,9 +20,11 @@ Deploy as a single Docker container on **Fly.io** in region `fra` (Frankfurt), r
 
 Configuration shipped with this ADR:
 
-- **[`Dockerfile`](../../Dockerfile)** — `python:3.12-slim`, install `requirements.txt`, `CMD gunicorn -w 1 -b 0.0.0.0:8080 web:app`. The single-worker constraint is documented inline; it is load-bearing because `_games` is a module-level dict.
-- **[`fly.toml`](../../fly.toml)** — `primary_region = "fra"`, `auto_stop_machines = "off"`, `min_machines_running = 1`, `shared-cpu-1x` / 256MB. No volumes, no secrets, no Postgres.
-- **[`.dockerignore`](../../.dockerignore)** — excludes tests, sim, docs, `__pycache__`, `.git`. Keeps the image small and avoids shipping non-runtime code.
+Deploy config lives in [`fly/`](../../fly); the build context stays at the repo root so the Dockerfile's `COPY . .` reaches the app source. Deploys pass it explicitly: `flyctl deploy --config fly/fly.toml --dockerfile fly/Dockerfile --ignorefile fly/.dockerignore .`.
+
+- **[`fly/Dockerfile`](../../fly/Dockerfile)** — `python:3.12-slim`, install `requirements.txt`, `CMD gunicorn -w 1 -b 0.0.0.0:8080 web:app`. The single-worker constraint is documented inline; it is load-bearing because `_games` is a module-level dict.
+- **[`fly/fly.toml`](../../fly/fly.toml)** — `primary_region = "fra"`, `auto_stop_machines = "off"`, `min_machines_running = 1`, `shared-cpu-1x` / 256MB. No volumes, no secrets, no Postgres.
+- **[`fly/.dockerignore`](../../fly/.dockerignore)** — excludes tests, sim, docs, `fly/`, `__pycache__`, `.git`. Keeps the image small and avoids shipping non-runtime code.
 - **[`requirements.txt`](../../requirements.txt)** — `gunicorn` added next to `flask`.
 
 No CI/CD pipeline at this stage — deploys are manual `fly deploy` from a working tree (see "Deferred" below).

@@ -58,6 +58,10 @@ pm_game/
 │   └── test_helpers.py           #   shared test fixtures
 ├── run_tests.py                  # stdlib coverage runner (90% gate)
 ├── requirements.txt              # web-frontend dependencies (Flask)
+├── fly/                          # Fly.io deployment config
+│   ├── fly.toml                  #   app config (region, machines)
+│   ├── Dockerfile                #   gunicorn image (single worker)
+│   └── .dockerignore             #   build-context excludes
 ├── scripts/
 │   ├── pre-commit                # git hook source-of-truth
 │   └── install-hooks.sh          # one-shot installer for fresh clones

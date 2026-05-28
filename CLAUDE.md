@@ -25,6 +25,7 @@ tests/                # unittest suites (run via run_tests.py):
   test_web.py         #   Flask web frontend
   test_helpers.py     #   shared test helpers (state builders, stdout capture)
 run_tests.py          # coverage-gated test runner (tracks engine.py, terminal.py, web.py)
+fly/                  # Fly.io deployment config (fly.toml, Dockerfile, .dockerignore)
 requirements.txt      # web-frontend dependencies (Flask). Not needed for terminal or sim.
 TODO.md               # working backlog
 docs/Hallucination_Inc_PRD.md   # canonical product requirements
