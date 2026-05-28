@@ -15,7 +15,7 @@ cd "$REPO_ROOT"
 # Only re-run when Python sources or tests changed.
 if git diff --cached --name-only | grep -Eq '\.py$|^tests/'; then
   echo "[pre-commit] Running tests + coverage gate…"
-  python3 run_tests.py
+  python3 tests/run_tests.py
 else
   echo "[pre-commit] No Python changes staged; skipping tests."
 fi

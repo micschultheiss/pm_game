@@ -7,8 +7,6 @@ __pycache__/
 docs/
 *.md
 tests/
-run_tests.py
-simulate.py
 scripts/
 fly/
 .github/

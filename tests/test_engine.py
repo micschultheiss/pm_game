@@ -11,6 +11,7 @@ import random
 import unittest
 from unittest import mock
 
+import _bootstrap  # noqa: F401  (side effect: puts src/ on sys.path)
 import engine as g
 
 from test_helpers import _bare_state, _state_with

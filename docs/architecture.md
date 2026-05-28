@@ -2,14 +2,14 @@
 
 ## Overview
 
-Hallucination Inc. is a Python game split across an engine and two peer frontends:
+Hallucination Inc. is a Python game split across an engine and two peer frontends. The program modules live in [`src/`](../src); the entry point stays in the repo root.
 
-- **`engine.py`** — pure game logic (constants, state, actions, time, oracles). Standard library only. No I/O.
-- **`terminal.py`** — the terminal frontend. ANSI-coloured UI, menus, prompts, blocking REPL. Standard library only.
-- **`web.py`** — the web frontend. A small Flask app that maps HTTP requests onto engine actions and renders state as HTML. Uses Jinja2 templates in `templates/` and CSS in `static/`. Adds Flask as the project's only runtime dependency (see [`requirements.txt`](../requirements.txt)).
-- **`hallucination_inc.py`** — entry point. A 15-line launcher that dispatches to `terminal.main()` by default and `web.main()` under `--web`.
+- **[`src/engine.py`](../src/engine.py)** — pure game logic (constants, state, actions, time, oracles). Standard library only. No I/O.
+- **[`src/terminal.py`](../src/terminal.py)** — the terminal frontend. ANSI-coloured UI, menus, prompts, blocking REPL. Standard library only.
+- **[`src/web.py`](../src/web.py)** — the web frontend. A small Flask app that maps HTTP requests onto engine actions and renders state as HTML. Uses Jinja2 templates in `src/templates/` and CSS in `src/static/`. Adds Flask as the project's only runtime dependency (see [`requirements.txt`](../requirements.txt)).
+- **[`hallucination_inc.py`](../hallucination_inc.py)** — entry point (repo root). Puts `src/` on `sys.path`, then dispatches to `terminal.main()` by default and `web.main()` under `--web`.
 
-A separate [simulate.py](../simulate.py) imports `engine` directly to drive headless games for balance testing.
+A separate [tests/simulate.py](../tests/simulate.py) imports `engine` directly to drive headless games for balance testing; like the tests, it reaches `src/` via [`tests/_bootstrap.py`](../tests/_bootstrap.py).
 
 The terminal frontend runs in-process; the web frontend boots Flask's dev server on `0.0.0.0:5050` (override via `PORT`) and keeps games in a module-level dict keyed by a cookie session id. Restarting the web server drops in-progress runs — there is no database, no save file. A run ends when the player quits, runs out of days, or goes bankrupt.
 
@@ -98,7 +98,7 @@ Any new action that costs or produces resources has to be reflected in the oracl
 
 ## Simulator
 
-`simulate.py` imports `hallucination_inc` and runs N headless games with a scripted or random policy. It's used for balance work — comparing win/loss/bankruptcy distributions across rule changes — not as part of the player experience.
+`tests/simulate.py` imports `engine` directly and runs N headless games with a scripted or random policy. It's used for balance work — comparing win/loss/bankruptcy distributions across rule changes — not as part of the player experience.
 
 ## Deployment
 

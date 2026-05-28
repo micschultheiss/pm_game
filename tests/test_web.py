@@ -15,6 +15,7 @@ import importlib
 import random
 import unittest
 
+import _bootstrap  # noqa: F401  (side effect: puts src/ on sys.path)
 import engine
 
 

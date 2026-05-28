@@ -9,7 +9,12 @@ Dispatches to a frontend:
   requires Flask — install via ``pip install -r requirements.txt``.
 """
 
+import os
 import sys
+
+# Program modules live in src/; put it on the path so the frontend imports
+# below (and their `import engine` / `from engine import ...`) resolve.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 
 def main():

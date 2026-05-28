@@ -5,7 +5,7 @@
 
 ## Context
 
-The web frontend ([`web.py`](../../web.py)) was built so we could share the game beyond a local terminal session. It now needs a stable public URL.
+The web frontend ([`web.py`](../../src/web.py)) was built so we could share the game beyond a local terminal session. It now needs a stable public URL.
 
 Constraints that shaped the choice:
 

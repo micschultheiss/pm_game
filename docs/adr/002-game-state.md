@@ -32,7 +32,7 @@ We needed to decide:
 
 - New mechanics (a new event, a new decay rule) plug into the existing tick in one place.
 - Run startup is instant — no migration, no schema check, no file IO.
-- Easy to drive headlessly from [simulate.py](../../simulate.py) for balance testing: instantiate state, call actions, inspect the result.
+- Easy to drive headlessly from [simulate.py](../../tests/simulate.py) for balance testing: instantiate state, call actions, inspect the result.
 
 **Negative**
 

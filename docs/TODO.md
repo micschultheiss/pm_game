@@ -23,6 +23,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Done
 
+- [x] Restructure repo: program modules → `src/` (engine, terminal, web, templates, static), tooling → `tests/` (run_tests, simulate), backlog → `docs/TODO.md`. Only the launcher stays in root (plus README/CLAUDE). `src/` reaches the import path via the launcher and `tests/_bootstrap.py`; Dockerfile gunicorn uses `--pythonpath src`; pre-commit runs `python3 tests/run_tests.py`. 190 tests pass, coverage unchanged.
 - [x] Move deployment config into a `fly/` directory — `fly.toml`, `Dockerfile`, `.dockerignore` relocated via `git mv`; build context stays at repo root and the Actions workflow passes `--config/--dockerfile/--ignorefile` flags; `.dockerignore` + docs updated. `flyctl config validate` passes.
 - [x] Move the test suite into a `tests/` directory — relocated `test_engine.py`, `test_terminal.py`, `test_web.py`, `test_helpers.py` via `git mv`; `run_tests.py` discovers `tests/` and pins `PROJECT_ROOT` on `sys.path`; pre-commit pattern + docs updated. 190 tests pass, coverage unchanged.
 - [x] Add smoke tests for `web.py` — `test_web.py` covers the welcome → game flow, each action route round-trip + validation branches, `/new` reset, the stale-session bailout, every view helper, and both end screens. Added to the coverage gate; 100% on 208 stmts. Total suite now 190 tests.

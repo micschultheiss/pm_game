@@ -14,6 +14,7 @@ import unittest
 from contextlib import redirect_stdout
 from unittest import mock
 
+import _bootstrap  # noqa: F401  (side effect: puts src/ on sys.path)
 import terminal as g
 
 from test_helpers import _capture, _silent, _bare_state, _state_with

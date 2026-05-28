@@ -45,18 +45,20 @@ cloudflared tunnel --url http://localhost:5050
 
 ```
 pm_game/
-├── engine.py                     # pure game logic — state, actions, time, oracles
-├── terminal.py                   # terminal frontend (ANSI UI, REPL)
-├── web.py                        # Flask web frontend
-├── templates/, static/           # web frontend assets
-├── hallucination_inc.py          # entry point — dispatches terminal / --web
-├── simulate.py                   # headless runner for balance / regression testing
-├── tests/                        # unittest suites
+├── hallucination_inc.py          # entry point — adds src/ to path, dispatches terminal / --web
+├── src/                          # program modules
+│   ├── engine.py                 #   pure game logic — state, actions, time, oracles
+│   ├── terminal.py               #   terminal frontend (ANSI UI, REPL)
+│   ├── web.py                    #   Flask web frontend
+│   └── templates/, static/       #   web frontend assets
+├── tests/                        # tests + tooling (import src/ via _bootstrap.py)
 │   ├── test_engine.py            #   engine logic
 │   ├── test_terminal.py          #   terminal frontend
 │   ├── test_web.py               #   Flask web frontend
-│   └── test_helpers.py           #   shared test fixtures
-├── run_tests.py                  # stdlib coverage runner (90% gate)
+│   ├── test_helpers.py           #   shared test fixtures
+│   ├── _bootstrap.py             #   puts src/ on sys.path
+│   ├── run_tests.py              #   stdlib coverage runner (90% gate)
+│   └── simulate.py               #   headless runner for balance / regression testing
 ├── requirements.txt              # web-frontend dependencies (Flask)
 ├── fly/                          # Fly.io deployment config
 │   ├── fly.toml                  #   app config (region, machines)
@@ -67,21 +69,22 @@ pm_game/
 │   └── install-hooks.sh          # one-shot installer for fresh clones
 ├── README.md
 ├── CLAUDE.md                     # repo conventions for AI-assisted edits
-├── TODO.md                       # working backlog
 ├── .github/
 │   └── NOTES.md                  # running log of behaviour / decision changes
 └── docs/
     ├── Hallucination_Inc_PRD.md  # canonical product requirements
     ├── architecture.md           # high-level architecture overview
     ├── game-design.md            # design notes and balance rationale
+    ├── TODO.md                   # working backlog
     └── adr/                      # architecture decision records
         ├── 001-tech-stack.md
         ├── 002-game-state.md
-        └── 003-engine-frontend-split.md
+        ├── 003-engine-frontend-split.md
+        └── 004-deployment-flyio.md
 ```
 
 The engine and terminal frontend stay stdlib-only; only the web frontend
-adds a dependency. `simulate.py` plays headless games against several
+adds a dependency. `tests/simulate.py` plays headless games against several
 policies (random / greedy / planner) and prints win-rate, bankruptcy, and
 product-mix stats — used to validate any balance change.
 
@@ -90,13 +93,13 @@ product-mix stats — used to validate any balance change.
 The test suite is `unittest`-based and uses only the Python standard library:
 
 ```bash
-python3 run_tests.py           # tests + coverage gate (90% threshold)
-python3 -m unittest -v         # just the tests, no coverage
+python3 tests/run_tests.py                 # tests + coverage gate (90% threshold)
+python3 -m unittest discover -s tests      # just the tests, no coverage
 ```
 
-`run_tests.py` measures line coverage with the stdlib `trace` module and an
-AST-based denominator (`ast`). Current coverage: ~93% on `engine.py`, ~96%
-on `terminal.py`. The web frontend isn't coverage-gated yet.
+`tests/run_tests.py` measures line coverage with the stdlib `trace` module and
+an AST-based denominator (`ast`). Current coverage: ~93% on `engine.py`, ~96%
+on `terminal.py`, 100% on `web.py`.
 
 A pre-commit git hook runs the gate on every commit that touches Python files.
 To enable it after a fresh clone:

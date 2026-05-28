@@ -10,6 +10,7 @@ import io
 import random
 from contextlib import redirect_stdout
 
+import _bootstrap  # noqa: F401  (side effect: puts src/ on sys.path)
 import engine
 
 

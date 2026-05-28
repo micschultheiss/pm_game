@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Run the test suite and report line coverage for hallucination_inc.py.
+Run the test suite and report line coverage for the src/ program modules
+(engine.py, terminal.py, web.py).
 
 Stdlib only (unittest + trace + ast — no third-party deps). Exits non-zero if
 tests fail or coverage falls below COVERAGE_THRESHOLD. Wired into
@@ -20,13 +21,15 @@ from contextlib import redirect_stdout
 # excluded from the gate but tracked for visibility.
 TARGET_FILES = ["engine.py", "terminal.py", "web.py"]
 COVERAGE_THRESHOLD = 90.0
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-TESTS_DIR = os.path.join(PROJECT_ROOT, "tests")
+TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(TESTS_DIR)
+SRC_DIR = os.path.join(PROJECT_ROOT, "src")
 
-# Tests live in tests/ but import the modules under test (engine, terminal,
-# web) from the project root, so make sure both are importable regardless of
-# the cwd the runner is invoked from.
-sys.path.insert(0, PROJECT_ROOT)
+# This runner and the tests live in tests/, but the modules under test live
+# in src/. Put both on the path so `import engine`/`terminal`/`web` (src) and
+# `import test_helpers`/`_bootstrap` (tests) resolve regardless of cwd.
+sys.path.insert(0, SRC_DIR)
+sys.path.insert(0, TESTS_DIR)
 
 
 def executable_lines(filepath):
@@ -99,7 +102,7 @@ def report(counts, threshold):
     print("-" * 55)
     all_pass = True
     for target in TARGET_FILES:
-        path = os.path.join(PROJECT_ROOT, target)
+        path = os.path.join(SRC_DIR, target)
         total = executable_lines(path)
         hit = covered_lines(counts, path)
         miss = total - hit

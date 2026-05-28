@@ -6,11 +6,11 @@ Runs N games under different bot policies, aggregates outcomes, and surfaces
 balance / mechanic insights.
 
 Usage:
-    python3 simulate.py                       # 200 games, all policies
-    python3 simulate.py --runs 1000           # 1000 games each policy
-    python3 simulate.py --policy planner      # one policy only
-    python3 simulate.py --seed 42             # reproducible
-    python3 simulate.py --json out.json       # dump raw per-run records
+    python3 tests/simulate.py                       # 200 games, all policies
+    python3 tests/simulate.py --runs 1000           # 1000 games each policy
+    python3 tests/simulate.py --policy planner      # one policy only
+    python3 tests/simulate.py --seed 42             # reproducible
+    python3 tests/simulate.py --json out.json       # dump raw per-run records
 """
 
 import argparse
@@ -20,6 +20,7 @@ import statistics
 import sys
 from collections import Counter, defaultdict
 
+import _bootstrap  # noqa: F401  (side effect: puts src/ on sys.path)
 import engine as g
 
 
