@@ -4,7 +4,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-- [ ] Add smoke tests for `web.py` (Flask test client: GET / on a fresh session, POST /buy round-trip, POST /new resets state); decide whether to coverage-gate it
+(empty — pull from Next)
 
 ## Next
 
@@ -23,6 +23,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Done
 
+- [x] Add smoke tests for `web.py` — `test_web.py` covers the welcome → game flow, each action route round-trip + validation branches, `/new` reset, the stale-session bailout, every view helper, and both end screens. Added to the coverage gate; 100% on 208 stmts. Total suite now 190 tests.
 - [x] Publish the web frontend on Fly.io (`hallucination-inc.fly.dev`) — first `fly launch` + `fly deploy` ran against the config from [ADR 004](docs/adr/004-deployment-flyio.md) (Dockerfile + fly.toml, region fra, single warm machine).
 - [x] Wire GitHub Actions deploy pipeline — [.github/workflows/fly-deploy.yml](.github/workflows/fly-deploy.yml) runs `flyctl deploy --remote-only` on every push to `main`.
 - [x] Step 4 of engine split — `web.py` Flask frontend reusing the engine. Routes for buy/craft/sell/travel/next/borrow/pay/new; in-memory state keyed by a cookie session id; Jinja2 template + CSS that mirror the terminal layout (banner, market grid, contracts table, action menu). `python3 hallucination_inc.py --web` dispatches into it; default still runs the terminal. Engine and terminal stay stdlib-only — Flask is the only project dep, pinned in `requirements.txt`. Smoke-tested end to end via Flask dev server + curl.

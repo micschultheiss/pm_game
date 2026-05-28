@@ -18,7 +18,7 @@ from contextlib import redirect_stdout
 
 # Files we care about. Other project files (simulate.py, test_*.py) are
 # excluded from the gate but tracked for visibility.
-TARGET_FILES = ["engine.py", "terminal.py"]
+TARGET_FILES = ["engine.py", "terminal.py", "web.py"]
 COVERAGE_THRESHOLD = 90.0
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -97,7 +97,9 @@ def report(counts, threshold):
         total = executable_lines(path)
         hit = covered_lines(counts, path)
         miss = total - hit
-        pct = 100.0 * len(hit) / len(total) if total else 100.0
+        # Trace can record lines the AST didn't flag as stmts (decorators,
+        # multi-line expressions), so cap at 100% for display.
+        pct = min(100.0, 100.0 * len(hit) / len(total)) if total else 100.0
         marker = "✓" if pct >= threshold else "✗"
         print(f"{target:<32} {len(total):>6} {len(miss):>6} {pct:>6.1f}% {marker}")
         if pct < threshold:
