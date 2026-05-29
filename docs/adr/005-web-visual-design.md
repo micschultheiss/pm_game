@@ -57,7 +57,28 @@ server-rendered markup and preserves the table aesthetic the user explicitly cho
 - Web smoke tests stayed green (one assertion updated: the status bar now splits the day
   counter into label/value spans, so the test asserts `"1/30"` + `class="g-stat"`
   instead of the old literal `"Day 1/"`). 190 tests pass, web coverage 100%.
-- The full boot-sequence **title splash** (the separate `Hallucination Inc Title
-  Screen.html`, driven by `hallu-engine.js`) was out of scope for this pass — the open
-  handoff file was the Game Screens (briefing + game). The CSS chromatic wordmark from
-  that direction is included; the animated boot loop is a possible follow-up.
+- The full boot-sequence **title splash** (from the separate `Hallucination Inc Title
+  Screen.html`, driven by `hallu-engine.js`) was added in a follow-up pass — see the
+  "Title splash" section below.
+
+## Follow-up — title splash (2026-05-29)
+
+The animated boot-sequence splash (locked "Glitch" direction) now plays **before** the
+briefing text. The design's framework-free animator `hallu-engine.js` is vendored
+verbatim into `src/static/`; `welcome.html` mounts it into a full-screen `#splash`
+overlay with the glitch config (boot log, ASCII column-sweep reveal of HALLUCINATION
+INC., tagline, blinking prompt, mock copyright). Boot-log numbers were updated to match
+the live game ($100K cash / $100K debt @ 3%/day).
+
+- **Dismiss**: Enter key, click, or tap fades the overlay out and removes it, revealing
+  the briefing underneath; scroll is locked while it's up. The existing `/start` flow
+  (and tests) are untouched — the splash is pure client-side presentation.
+- **Graceful degradation**: `#splash` ships `hidden`; if JS is off it never un-hides, so
+  the briefing renders normally.
+- **Legibility tuning over the raw design**: the engine's ±3px chromatic split smeared
+  the dense 13-letter wordmark into near-noise at responsive sizes, so `#splash` softens
+  it to ±2px (±1px on mobile). The wordmark is sized at `clamp(7px, 1.9vw, 26px)` so the
+  ~77-block-column line fits the viewport at every width (≈0.6em monospace advance);
+  verified 925px @ 1280 and 271px @ 375.
+- **Preview note**: `requestAnimationFrame` throttles when the preview tab isn't
+  foregrounded, freezing the sweep mid-animation — a preview artifact, not a runtime bug.

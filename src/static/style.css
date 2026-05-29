@@ -222,6 +222,28 @@ input:focus, select:focus { outline: 1px solid var(--accent); outline-offset: 0;
 .g-grade { font-size: 18px; line-height: 1.5; color: var(--accent); margin: 0 0 32px; }
 .g-end form { display: flex; justify-content: center; }
 
+/* ── boot-sequence title splash (hallu-engine.js mounts into #splash) ── */
+#splash { position: fixed; inset: 0; z-index: 100; transition: opacity .5s ease; }
+#splash.dismissed { opacity: 0; pointer-events: none; }
+/* id+class beats the engine's class-only rules, so these win the cascade
+   even though the engine injects its <style> later at mount time.
+   Soften the chromatic split (engine ships ±3px) so the dense 13-letter
+   wordmark still resolves as HALLUCINATION INC. rather than pure noise. */
+#splash .hi-stage[data-effect="glitch"] .hi-word,
+#splash .hi-stage[data-effect="glitch"] .hi-inc {
+  text-shadow: -2px 0 0 var(--hi-r), 2px 0 0 var(--hi-b);
+}
+@media (max-width: 640px) {
+  #splash .hi-stage[data-effect="glitch"] .hi-word,
+  #splash .hi-stage[data-effect="glitch"] .hi-inc {
+    text-shadow: -1px 0 0 var(--hi-r), 1px 0 0 var(--hi-b);
+  }
+  #splash .hi-log { font-size: 12px; line-height: 1.7; }
+  #splash .hi-tag { font-size: 13px; letter-spacing: 2px; }
+  #splash .hi-prompt { font-size: 13px; }
+  #splash .hi-copy { font-size: 10.5px; }
+}
+
 /* ── responsive (replaces the design's JS-toggled .g-mobile) ──── */
 @media (max-width: 640px) {
   html, body { font-size: 14px; }

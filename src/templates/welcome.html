@@ -8,6 +8,11 @@
 </head>
 <body>
 
+{# Boot-sequence title splash (locked "Glitch" direction). Plays before the
+   briefing text; press ENTER or tap to dismiss. Pure presentation — degrades
+   gracefully to the briefing if JS is off (the overlay stays display:none). #}
+<div id="splash" hidden></div>
+
 <div class="g-intro">
   <div class="g-eyebrow">New game · briefing</div>
   <h1><span class="g-glitch" data-t="HALLUCINATION INC.">HALLUCINATION INC.</span></h1>
@@ -61,5 +66,60 @@
 </div>
 
 <div class="g-scan"></div>
+
+<script src="{{ url_for('static', filename='hallu-engine.js') }}"></script>
+<script>
+(function () {
+  var root = document.getElementById('splash');
+  if (!root || !window.HALLU) return;  // no JS engine → skip straight to briefing
+
+  var COPY = '© 2026 HALLUCINATION INC. — a wholly imagined subsidiary of ' +
+    'nothing in particular. All hallucinations reserved. No tokens were harmed; ' +
+    'several were overpriced.';
+
+  // Boot log numbers track the live game ($100K cash / $100K debt @ 3%/day).
+  var SPLASH_CFG = {
+    effect: 'glitch', fill: '█', empty: ' ',
+    // 13-letter HALLUCINATION is ~77 block-columns wide; keep it under ~1.9vw
+    // so the line fits the viewport (a monospace char advance is ~0.6em).
+    wordSize: 'clamp(7px, 1.9vw, 26px)',
+    bg: '#07070c', fg: '#f3f3fb', dim: '#262633', accent: '#21e6c1',
+    warn: '#ff2d55', glow: '#6b6bff', r: '#ff2d55', b: '#21e6c1',
+    scan: false, vignette: true,
+    tagline: 'Now 40% more confident · 0% more correct',
+    prompt: 'PRESS [ENTER] · TAP TO CONTINUE',
+    copy: COPY,
+    boot: [
+      ['HALLUCINATION INC. BIOS v0.30.0-hallucinated', 'OK', 'ok'],
+      ['allocating $100,000 to volatile wallet', 'OK', 'ok'],
+      ['servicing $100,000 debt @ 3.00%/day', 'OK', 'ok'],
+      ['reticulating embeddings', 'OK', 'ok'],
+      ['calibrating reality-distortion field', 'OK', 'ok'],
+      ['scraping the open internet (again)', 'OK', 'ok'],
+      ['clearing procurement compliance', 'SKIPPED', 'skip'],
+      ['spinning up 13 model wrappers', 'OK', 'ok'],
+      ['booting confidence module', '1100%', 'num'],
+    ],
+  };
+
+  root.hidden = false;
+  document.body.style.overflow = 'hidden';
+  var cleanup = window.HALLU.mount(root, SPLASH_CFG);
+
+  var dismissed = false;
+  function dismiss() {
+    if (dismissed) return;
+    dismissed = true;
+    root.classList.add('dismissed');
+    document.body.style.overflow = '';
+    if (typeof cleanup === 'function') cleanup();
+    document.removeEventListener('keydown', dismiss);
+    setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); }, 500);
+  }
+  document.addEventListener('keydown', dismiss);
+  root.addEventListener('click', dismiss);
+  root.addEventListener('touchstart', dismiss, { passive: true });
+})();
+</script>
 </body>
 </html>
