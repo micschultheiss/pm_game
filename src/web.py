@@ -330,6 +330,16 @@ def _recipe_short(product_name):
     )
 
 
+def _recipe_chips(product_name):
+    """Recipe as [(qty, abbrev), ...] so the template can colour each chip
+    the way the design's <Recipe> component does (Co/Re/Im/Vo/Vi)."""
+    recipe = engine.PRODUCTS[product_name]["recipe"]
+    return [
+        (recipe[t], engine.TOKEN_ABBREV[t])
+        for t in engine.TOKEN_TYPES if t in recipe
+    ]
+
+
 def _contracts_view(state):
     rows = []
     for client in state["active_clients"]:
@@ -342,6 +352,7 @@ def _contracts_view(state):
                 "budget":      info["budget"],
                 "min_quality": info["min_quality"],
                 "recipe":      _recipe_short(prod_name),
+                "recipe_chips": _recipe_chips(prod_name),
             })
     rows.sort(key=lambda r: -r["budget"])
     return rows

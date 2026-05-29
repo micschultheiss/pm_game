@@ -67,7 +67,9 @@ class WelcomeTests(WebTestBase):
         self._start_game()
         body = self.client.get("/").get_data(as_text=True)
         self.assertNotIn("Start the run", body)
-        self.assertIn("Day 1/", body)
+        # Game status bar renders the day counter (label + "1/30" value).
+        self.assertIn("1/{}".format(engine.MAX_DAYS), body)
+        self.assertIn('class="g-stat"', body)
 
     def test_start_redirects_with_303(self):
         self.client.get("/")

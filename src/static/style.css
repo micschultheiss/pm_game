@@ -1,300 +1,243 @@
-/* Hallucination Inc. — terminal-flavoured web frontend
- * Dark background, monospace, cyan accent on hotkey-style labels.
- * Mirrors the rhythm of the CLI: header banner, panels, action menu. */
+/* Hallucination Inc. — glitch-terminal web UI
+ * Ported from the Claude Design handoff ("Hallucination Inc Game Screens.html"):
+ * the locked Glitch direction (Option 3 title) → Briefing → Game (Option A,
+ * Terminal Classic). The design's JS-toggled `.g-mobile` class is replaced here
+ * by real CSS media queries so the same markup reflows for phones.
+ *
+ * Palette + component vocabulary derived from the design's game.css. */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg:           #0c0c0c;
-  --bg-elev:     #161616;
-  --fg:           #d8d8d8;
-  --fg-dim:       #8a8a8a;
-  --accent:       #62d4ff;
-  --accent-bold:  #9ce5ff;
-  --warn:         #e7c547;
-  --danger:       #ff7a7a;
-  --good:         #7ddc8b;
-  --rule:         #2a2a2a;
-  --font: ui-monospace, SF Mono, Menlo, Consolas, "Courier New", monospace;
+  --bg:#07070c; --bg2:#0c0c15; --panel:#10101b; --panel2:#15151f;
+  --line:rgba(150,160,200,.14); --line2:rgba(150,160,200,.08);
+  --fg:#eef0f8; --dim:#7e8498; --faint:#565c70;
+  --accent:#21e6c1; --accent-d:#0e9a86; --accent-t:rgba(33,230,193,.12);
+  --red:#ff2d55; --gold:#ffcf4d; --green:#7dffb0; --violet:#9b8cff;
+  --r:6px;
+  --font:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
+  margin: 0;
+  min-height: 100%;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.45;
-  margin: 0;
-  padding: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: .2px;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  padding: 16px;
+/* faint scanline texture over everything */
+.g-scan {
+  position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  background: repeating-linear-gradient(0deg,
+    rgba(0,0,0,.16) 0, rgba(0,0,0,.16) 1px, transparent 1px, transparent 3px);
+  opacity: .4; mix-blend-mode: multiply;
 }
 
-.terminal {
-  max-width: 96ch;
-  margin: 0 auto;
+.g-pad { max-width: 1100px; margin: 0 auto; padding: 30px 38px 44px; position: relative; z-index: 1; }
+
+/* ── glitch chromatic wordmark ───────────────────────────────── */
+.g-glitch { position: relative; color: var(--fg); }
+.g-glitch::before, .g-glitch::after {
+  content: attr(data-t); position: absolute; left: 0; top: 0;
+  width: 100%; overflow: hidden; pointer-events: none;
 }
+.g-glitch::before { color: var(--red);    transform: translate(-1.5px,0); opacity: .7; mix-blend-mode: screen; }
+.g-glitch::after  { color: var(--accent); transform: translate(1.5px,0);  opacity: .7; mix-blend-mode: screen; }
 
-/* ─── Header banner ───────────────────────────────────────── */
-
-.banner {
-  border-top: 2px double var(--rule);
-  border-bottom: 2px double var(--rule);
-  padding: 10px 0;
-  margin-bottom: 14px;
+/* ── header / status bar ─────────────────────────────────────── */
+.g-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--line);
 }
+.g-brand { font-weight: 800; font-size: 18px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
+.g-stat { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 12px; font-size: 13.5px; }
+.g-stat .it { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.g-stat .k { color: var(--faint); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; }
+.g-stat .v { color: var(--fg); font-weight: 600; }
+.g-stat .v.cash { color: var(--green); }
+.g-stat .v.debt { color: var(--red); }
+.g-stat .v.loc  { color: var(--accent); }
+.g-dot { color: var(--faint); }
 
-.banner-row { white-space: pre-wrap; }
-.banner-row-title { font-size: 13px; }
-.banner-row-title strong { color: var(--accent-bold); letter-spacing: 0.04em; }
+/* section label */
+.g-sec { margin: 26px 0 12px; font-size: 11.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); }
+.g-sec b { color: var(--accent); font-weight: 600; }
 
-/* Compact one-line header used during a live run.
- * Falls back to a wrapped row on narrow screens. */
-.banner-compact .banner-row-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 6px;
-  white-space: nowrap;
+/* inventory line */
+.g-inv { display: flex; gap: 34px; flex-wrap: wrap; margin-top: 18px; font-size: 13.5px; }
+.g-inv .k { color: var(--dim); }
+.g-inv .e { color: var(--faint); font-style: italic; }
+.g-inv .token { color: var(--fg); }
+.g-inv .product { color: var(--green); }
+.g-inv .product.crafting { color: var(--gold); }
+
+/* ── event + message banners ─────────────────────────────────── */
+.g-banner { border-radius: var(--r); padding: 9px 14px; margin-top: 16px; font-size: 14px; }
+.g-banner.event { border: 1px solid var(--accent); background: var(--accent-t); color: var(--fg); }
+.g-banner.msg   { border: 1px solid var(--line); border-left: 3px solid var(--green); background: var(--panel); }
+.g-banner.warn  { border: 1px solid var(--red); background: rgba(255,45,85,.08); color: var(--red); }
+
+/* ── chips / badges ──────────────────────────────────────────── */
+.g-tag {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 1px; padding: 2px 7px; border-radius: 3px;
+  border: 1px solid currentColor; line-height: 1.4; display: inline-block;
 }
-.banner-compact .sep { color: var(--fg-dim); }
-.banner-compact .banner-title { letter-spacing: 0.04em; }
+.g-tag.gov { color: var(--gold); }
+.g-tag.ent { color: var(--accent); }
+.g-rec { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.g-rec .t { font-size: 12px; color: var(--dim); padding: 1px 6px; border-radius: 3px; background: rgba(150,160,200,.07); }
+.g-rec .t.co { color: #8fd0ff; }
+.g-rec .t.re { color: var(--violet); }
+.g-rec .t.im { color: #ff9bd0; }
+.g-rec .t.vo { color: var(--green); }
+.g-rec .t.vi { color: var(--gold); }
+.g-q { font-weight: 700; font-variant-numeric: tabular-nums; }
+.g-q.hi { color: var(--green); }
+.g-q.mid { color: var(--gold); }
+.g-q.lo { color: var(--red); }
+.g-minq { font-size: 12.5px; font-weight: 600; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* ─── Event + message banners ─────────────────────────────── */
-
-.event-banner {
-  border-left: 3px solid var(--accent);
-  padding: 6px 12px;
-  margin: 8px 0;
-  background: var(--bg-elev);
-  white-space: pre-wrap;
+/* ── tables (Option A — Terminal Classic) ────────────────────── */
+.g-scroll { overflow-x: auto; }
+.g-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.g-table th {
+  text-align: left; font-weight: 500; color: var(--faint); font-size: 11px; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 0 14px 9px; border-bottom: 1px solid var(--line2); white-space: nowrap;
 }
+.g-table th.num, .g-table td.num { text-align: right; }
+.g-table td { padding: 9px 14px; border-bottom: 1px solid var(--line2); white-space: nowrap; }
+.g-table tr.sel td { background: var(--accent-t); }
+.g-table tr.sel .pname { color: var(--accent); font-weight: 700; }
+.g-table .pname { position: relative; }
+.g-table tr.sel .pname::before { content: '›'; position: absolute; left: -13px; color: var(--accent); }
+.g-table .price { color: var(--fg); }
+.g-table .price.cur { color: var(--accent); }
+.g-table .pays { color: var(--green); font-weight: 700; }
+.g-table td.cl { color: var(--fg); }
 
-.msg-banner {
-  border-left: 3px solid var(--good);
-  padding: 6px 12px;
-  margin: 8px 0;
-  background: var(--bg-elev);
+/* ── buttons / action dock ───────────────────────────────────── */
+.g-acts {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 28px;
+  padding-top: 20px; border-top: 1px solid var(--line);
 }
-
-/* ─── Location + inventory panel ───────────────────────────── */
-
-.panel {
-  border-bottom: 1px solid var(--rule);
-  padding: 8px 0 12px;
-  margin-bottom: 14px;
+.g-btn {
+  font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  padding: 9px 16px; border-radius: 3px; border: 1px solid var(--accent);
+  color: var(--accent); background: transparent; transition: background .14s, color .14s; letter-spacing: .5px;
 }
+.g-btn:hover { background: var(--accent-t); }
+.g-btn.solid { background: var(--accent); color: #03110e; border-color: var(--accent); }
+.g-btn.solid:hover { background: #3cf2d0; }
+.g-btn.next { color: var(--green); border-color: var(--green); margin-left: auto; }
+.g-btn.next:hover { background: rgba(125,255,176,.12); }
+.g-btn.danger { color: var(--red); border-color: var(--red); }
+.g-btn.danger:hover { background: rgba(255,45,85,.1); }
 
-.panel .row { padding: 2px 0; }
-.panel .label { color: var(--fg-dim); display: inline-block; min-width: 11ch; }
-.panel .warn { color: var(--warn); }
-.panel .token { color: var(--fg); }
-.panel .product { color: var(--good); }
-.panel .product.crafting { color: var(--warn); }
-.panel .want { color: var(--fg); }
-
-/* ─── Market grid + contracts ──────────────────────────────── */
-
-section.market, section.contracts {
-  margin: 14px 0;
-}
-
-section.market h2, section.contracts h2, section.actions h2 {
-  font-size: 13px;
-  font-weight: normal;
-  color: var(--fg-dim);
-  margin: 0 0 6px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-
-th, td {
-  text-align: left;
-  padding: 3px 8px 3px 0;
-  white-space: nowrap;
-}
-
-th {
-  color: var(--fg-dim);
-  font-weight: normal;
-  border-bottom: 1px solid var(--rule);
-}
-
-tr.here { background: rgba(98, 212, 255, 0.06); }
-tr.here td { color: var(--accent-bold); }
-.here-mark { color: var(--accent); width: 1ch; }
-
-td.muted, .muted { color: var(--fg-dim); }
-
-/* ─── Actions (CSS-tabs pattern) ───────────────────────────── */
-/* Hidden radios pick which form panel is visible. Labels in
- * .action-menu act as the one-line tab bar; .form panels are shown
- * via the general-sibling combinator on the matching :checked input. */
-
-section.actions {
-  margin-top: 18px;
-  border-top: 1px solid var(--rule);
-  padding-top: 14px;
-}
-
-.action-tab {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.action-menu {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
+/* ── action tabs (CSS-only: hidden radios drive which form shows) ── */
+.action-tab { position: absolute; opacity: 0; pointer-events: none; }
+.action-menu { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 28px;
+  padding-top: 20px; border-top: 1px solid var(--line); }
 .action-menu .tab {
-  cursor: pointer;
-  user-select: none;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 2px;
-  padding: 4px 12px;
-  background: transparent;
-  white-space: nowrap;
-  transition: background 0.05s, color 0.05s;
+  cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; letter-spacing: .5px;
+  padding: 9px 16px; border-radius: 3px; border: 1px solid var(--accent);
+  color: var(--accent); background: transparent; transition: background .14s, color .14s; white-space: nowrap;
 }
-.action-menu .tab:hover { background: rgba(98, 212, 255, 0.1); color: var(--accent-bold); }
+.action-menu .tab:hover { background: var(--accent-t); }
+.action-menu .tab.next { color: var(--green); border-color: var(--green); margin-left: auto; }
 
-/* Selected tab highlight */
 #tab-buy:checked    ~ .action-menu label[for="tab-buy"],
 #tab-sell:checked   ~ .action-menu label[for="tab-sell"],
 #tab-craft:checked  ~ .action-menu label[for="tab-craft"],
 #tab-travel:checked ~ .action-menu label[for="tab-travel"],
 #tab-borrow:checked ~ .action-menu label[for="tab-borrow"],
 #tab-pay:checked    ~ .action-menu label[for="tab-pay"] {
-  background: var(--accent);
-  color: var(--bg);
+  background: var(--accent); color: #03110e;
 }
 
-/* All form panels hidden by default; reveal the matching one. */
-.action-panel { display: contents; }
-.action-panel .form { display: none; }
-
+.action-panel .form { display: none; margin-top: 16px; }
 #tab-buy:checked    ~ .action-panel .form-buy,
 #tab-sell:checked   ~ .action-panel .form-sell,
 #tab-craft:checked  ~ .action-panel .form-craft,
 #tab-travel:checked ~ .action-panel .form-travel,
 #tab-borrow:checked ~ .action-panel .form-borrow,
-#tab-pay:checked    ~ .action-panel .form-pay {
-  display: block;
-}
+#tab-pay:checked    ~ .action-panel .form-pay { display: block; }
 
 .form {
-  background: var(--bg-elev);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 10px 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px;
 }
-
-.form form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.form label { display: flex; gap: 6px; align-items: center; color: var(--fg-dim); }
+.form form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.form label { display: flex; gap: 7px; align-items: center; color: var(--dim); font-size: 13.5px; }
 
 input, select {
-  background: var(--bg);
-  color: var(--fg);
-  border: 1px solid var(--rule);
-  font: inherit;
-  padding: 4px 6px;
-  border-radius: 2px;
+  background: var(--bg2); color: var(--fg); border: 1px solid var(--line); font: inherit;
+  padding: 7px 9px; border-radius: 3px;
 }
+input:focus, select:focus { outline: 1px solid var(--accent); outline-offset: 0; }
 
-input:focus, select:focus {
-  outline: 1px solid var(--accent);
-  outline-offset: 0;
+.hint { font-size: 12.5px; color: var(--faint); }
+
+/* ── intro / briefing screen ─────────────────────────────────── */
+.g-intro { max-width: 760px; margin: 0 auto; padding: 40px 38px 60px; position: relative; z-index: 1; }
+.g-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.g-intro h1 { font-size: 23px; font-weight: 800; letter-spacing: .5px; margin: 0; color: var(--fg); }
+.g-sub { color: var(--dim); font-size: 14px; margin-top: 6px; }
+.g-rule { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+.g-lede { color: var(--fg); font-size: 15px; line-height: 1.7; }
+.g-lede .hl { color: var(--accent); }
+.g-lede .hlr { color: var(--red); font-weight: 600; }
+.g-stakes { display: flex; gap: 10px; flex-wrap: wrap; margin: 22px 0; }
+.g-stakes .s { flex: 1 1 150px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); padding: 12px 14px; }
+.g-stakes .s .n { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.g-stakes .s .n.r { color: var(--red); }
+.g-stakes .s .n.g { color: var(--green); }
+.g-stakes .s .n.a { color: var(--accent); }
+.g-stakes .s .l { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); margin-top: 3px; }
+.g-block { margin: 24px 0; }
+.g-block .bt { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.g-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.g-list li { display: grid; grid-template-columns: auto 1fr; gap: 10px; color: var(--dim); font-size: 14px; line-height: 1.6; }
+.g-list li::before { content: '▸'; color: var(--accent); }
+.g-list li b { color: var(--fg); font-weight: 600; }
+.g-prompt { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line);
+  color: var(--accent); font-weight: 600; letter-spacing: 1px; font-size: 14px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.g-prompt .cur { animation: gblink 1.05s steps(1) infinite; }
+@keyframes gblink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+
+/* ── end / bankruptcy screens ────────────────────────────────── */
+.g-end { max-width: 640px; margin: 0 auto; padding: 56px 38px; position: relative; z-index: 1; text-align: center; }
+.g-end h1 { font-size: 26px; letter-spacing: 1px; margin: 0 0 8px; }
+.g-end.bankruptcy h1 { color: var(--red); }
+.g-end .lead { color: var(--dim); margin-bottom: 28px; }
+.g-kv { margin: 0 auto 28px; border-collapse: collapse; text-align: left; }
+.g-kv th { text-align: right; padding: 6px 16px 6px 0; color: var(--dim); font-weight: 500; }
+.g-kv td { padding: 6px 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.g-grade { font-size: 18px; line-height: 1.5; color: var(--accent); margin: 0 0 32px; }
+.g-end form { display: flex; justify-content: center; }
+
+/* ── responsive (replaces the design's JS-toggled .g-mobile) ──── */
+@media (max-width: 640px) {
+  html, body { font-size: 14px; }
+  .g-pad { padding: 18px 16px 30px; }
+  .g-intro { padding: 26px 18px 44px; }
+  .g-intro h1 { font-size: 18px; }
+  .g-brand { font-size: 15px; }
+  .g-stat { font-size: 12px; gap: 5px 9px; }
+  .g-sec { margin: 20px 0 10px; }
+  .g-inv { gap: 18px; }
+  .g-acts, .action-menu { gap: 8px; }
+  .g-btn, .action-menu .tab { flex: 1 1 auto; text-align: center; }
+  .g-btn.next, .action-menu .tab.next { margin-left: 0; flex-basis: 100%; }
+  .form form { flex-direction: column; align-items: stretch; }
+  .form label { flex-direction: column; align-items: stretch; gap: 4px; }
+  .form input, .form select { width: 100%; }
+  .form button { width: 100%; }
+  .g-end { padding: 40px 18px; }
 }
-
-button {
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  font: inherit;
-  padding: 4px 12px;
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-button:hover { background: rgba(98, 212, 255, 0.1); color: var(--accent-bold); }
-button.primary { color: var(--good); border-color: var(--good); }
-button.primary:hover { background: rgba(125, 220, 139, 0.1); }
-button.danger { color: var(--danger); border-color: var(--danger); }
-button.danger:hover { background: rgba(255, 122, 122, 0.1); }
-button.big { padding: 10px 24px; font-size: 15px; }
-
-.hint { font-size: 12px; margin-left: 4px; }
-
-/* Next + Reset row, separated from the action menu. */
-.action-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
-}
-
-/* ─── Welcome screen ───────────────────────────────────────── */
-
-.welcome .intro { padding: 14px 0 24px; }
-.welcome .intro h2 {
-  font-size: 13px;
-  color: var(--fg-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 22px 0 8px;
-}
-.welcome .intro p { margin: 10px 0; }
-.welcome .intro ul { padding-left: 22px; margin: 8px 0; }
-.welcome .intro li { margin: 6px 0; }
-.welcome .intro .callout {
-  border-left: 3px solid var(--accent);
-  padding: 6px 12px;
-  background: var(--bg-elev);
-}
-.welcome .intro .closer {
-  margin-top: 20px;
-  color: var(--accent-bold);
-}
-.welcome .start-form { margin-top: 24px; text-align: center; }
-
-/* ─── End / bankruptcy screens ─────────────────────────────── */
-
-.screen {
-  border-top: 2px double var(--rule);
-  border-bottom: 2px double var(--rule);
-  padding: 28px 0;
-  margin: 28px 0;
-  text-align: center;
-}
-
-.screen h1 {
-  font-size: 24px;
-  letter-spacing: 0.05em;
-  margin-bottom: 18px;
-}
-
-.screen.bankruptcy h1 { color: var(--danger); }
-.screen.end .grade { color: var(--accent-bold); font-size: 18px; margin: 24px 0; }
-
-.kv {
-  margin: 14px auto;
-  border: none;
-}
-.kv th { text-align: right; padding-right: 14px; color: var(--fg-dim); border: 0; }
-.kv td { padding-left: 14px; border: 0; }
-

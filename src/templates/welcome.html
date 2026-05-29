@@ -3,83 +3,63 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hallucination Inc.</title>
+  <title>Hallucination Inc. — Briefing</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<main class="terminal welcome">
+<div class="g-intro">
+  <div class="g-eyebrow">New game · briefing</div>
+  <h1><span class="g-glitch" data-t="HALLUCINATION INC.">HALLUCINATION INC.</span></h1>
+  <div class="g-sub">Where AI meets enterprise.</div>
+  <hr class="g-rule">
 
-  <header class="banner">
-    <div class="banner-row banner-row-title">
-      <strong>HALLUCINATION INC.</strong> — Where AI Meets Enterprise
-    </div>
-  </header>
+  <p class="g-lede">
+    AI is eating your lunch. You've just been laid off from your cushy PM gig at
+    one of the big tech giants — and now you're out to cash in on the
+    <span class="hl">SaaSocalypse</span>. Nobody has cracked enterprise-grade
+    software with the new AI coding tools yet. <span class="hl">That's where you come in.</span>
+  </p>
 
-  <section class="intro">
-    <p>
-      AI is eating your lunch. You've just been laid off from your cushy PM gig
-      at one of the big tech giants — and now you're out to cash in on the
-      <strong>SaaSocalypse</strong>. Nobody has cracked enterprise-grade software
-      with the new AI coding tools yet. That's where you come in.
-    </p>
+  <div class="g-stakes">
+    <div class="s"><div class="n r">$100K</div><div class="l">starting debt</div></div>
+    <div class="s"><div class="n r">3% / day</div><div class="l">interest, compounding</div></div>
+    <div class="s"><div class="n a">{{ MAX_DAYS }} days</div><div class="l">to build a real business</div></div>
+  </div>
 
-    <p>
-      <strong>$100,000 in debt.</strong> <strong>3% interest per day.</strong>
-      <strong>{{ MAX_DAYS }} days</strong> to turn it into a real business.
-    </p>
-
-    <h2>The basics (in plain English)</h2>
-    <ul>
-      <li>
-        <strong>Tokens</strong> are the fuel AI runs on. You buy them by the
-        million from AI providers — the big labs like Anthropic, OpenAI, and
-        Google. Prices move daily, and pricier providers ship higher-quality
-        output.
-      </li>
-      <li>
-        <strong>Products</strong> are finished AI SaaS solutions — a support
-        bot, a compliance dashboard, and so on. You build each from a recipe
-        of tokens over a few days. Your pitch: reliable enterprise software,
-        shipped in days.
-      </li>
-      <li>
-        <strong>Clients</strong> are the companies and government agencies
-        that buy your products. {{ ACTIVE_CLIENT_COUNT }} are live at any
-        time. Each pays a fixed budget — but only if your product clears
-        their minimum quality bar.
-      </li>
+  <div class="g-block">
+    <div class="bt">The basics — in plain English</div>
+    <ul class="g-list">
+      <li><span><b>Tokens</b> are the fuel AI runs on. Buy them by the million from the big labs — Anthropic, OpenAI, Google. Prices move daily; pricier providers ship higher quality.</span></li>
+      <li><span><b>Products</b> are finished AI SaaS solutions — a support bot, a compliance dashboard. You build each from a recipe of tokens over a few days.</span></li>
+      <li><span><b>Clients</b> are the companies and agencies that buy them. {{ ACTIVE_CLIENT_COUNT }} are live at once, each with a fixed budget — paid only if your product clears their quality bar.</span></li>
     </ul>
+  </div>
 
-    <h2>Your job</h2>
-    <p class="callout">
-      <strong>Buy tokens cheap</strong> →
-      <strong>build quality products</strong> →
-      <strong>sell for a profit</strong>,
-      all before your debt eats you alive.
+  <div class="g-block">
+    <div class="bt">Your job</div>
+    <p class="g-lede" style="font-size:16px">
+      Buy tokens <span class="hl">cheap</span> &nbsp;→&nbsp; build <span class="hl">quality</span> products
+      &nbsp;→&nbsp; sell for a <span class="hl">profit</span> — all before your debt eats you alive.
     </p>
+  </div>
 
-    <h2>Good to know</h2>
-    <ul>
-      <li>
-        You start with <strong>$100K cash</strong> and
-        <strong>$100K debt</strong> that grows <strong>3% a day</strong>.
-        Pay it off before day {{ MAX_DAYS }} for a
-        <strong>+${{ '{:,}'.format(DEBT_FREE_BONUS) }}</strong> debt-free bonus.
-      </li>
-      <li>A sales trip costs <strong>${{ '{:,}'.format(TRAVEL_COST) }}</strong> and burns a day.</li>
-      <li>Builds take <strong>2–6 days</strong> and <strong>50–225M tokens</strong>; storage caps at <strong>{{ MAX_TOKENS }}M</strong>.</li>
-      <li>{{ ACTIVE_CLIENT_COUNT }} clients live at once — they rotate every few days. Grab good deals fast.</li>
-      <li>Beating a client's quality bar pays up to <strong>1.5×</strong> the budget. Tokens and finished products lose quality as they age.</li>
+  <div class="g-block">
+    <div class="bt">Good to know</div>
+    <ul class="g-list">
+      <li><span>Pay off your debt before day {{ MAX_DAYS }} for a <b>+${{ '{:,}'.format(DEBT_FREE_BONUS) }} debt-free bonus</b>.</span></li>
+      <li><span>A <b>sales trip</b> costs ${{ '{:,}'.format(TRAVEL_COST) }} and burns a day. Builds take 2–6 days and 50–225M tokens; storage caps at {{ MAX_TOKENS }}M.</span></li>
+      <li><span>{{ ACTIVE_CLIENT_COUNT }} clients live at once — they <b>rotate every few days</b>. Grab good deals fast.</span></li>
+      <li><span>Beating a client's quality bar pays up to <b>1.5× the budget</b>. Tokens and finished products <span class="hlr">lose quality as they age</span>.</span></li>
     </ul>
+  </div>
 
-    <p class="closer"><strong>{{ MAX_DAYS }} days on the clock.</strong> Good luck.</p>
+  <form method="post" action="{{ url_for('start_game') }}" class="g-prompt">
+    <span>{{ MAX_DAYS }} days on the clock. Good luck.</span>
+    <button type="submit" class="g-btn solid">Start the run →</button>
+  </form>
+</div>
 
-    <form method="post" action="{{ url_for('start_game') }}" class="start-form">
-      <button type="submit" class="primary big">Start the run →</button>
-    </form>
-  </section>
-
-</main>
+<div class="g-scan"></div>
 </body>
 </html>

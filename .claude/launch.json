@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hinc-web",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["hallucination_inc.py", "--web"],
+      "port": 5050
+    }
+  ]
+}
