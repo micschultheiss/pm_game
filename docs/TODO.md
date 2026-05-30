@@ -4,10 +4,16 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
-(empty — pull from Next)
+- [x] Add a Quit button to the web frontend — `/quit` ends the run by forcing `state.day = MAX_DAYS+1`, reusing the existing GAME OVER screen to lock in the final score
+- [ ] Rework Mobile Web Screens
+- [ ] Tweak Desktop Web Version
+- [~] Add keyboard Support in the browser — ENTER now advances briefing→game and advances the day (done); more shortcuts (action hotkeys) still open
+- [ ] Add mobile/tap support
+- [ ] Add a similar splash screen to the terminal version
 
 ## Next
 
+- [ ] debt free bonus is 100k - find a nice rectification for it
 - [ ] Add one or two new event categories (e.g. open-source model release, hiring freeze)
 - [ ] Surface why a productive move is unavailable when bankruptcy fires
 - [ ] Brand Asset Generator still uneconomical — despite the buff, only 15 builds (0.6% share) across 1000 planner runs. 100% conversion when built, so demand is fine; recipe economics still don't compete. Try: lower Code requirement, raise base value, or add a higher-tier client to its wants list.

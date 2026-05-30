@@ -177,6 +177,18 @@ def new_game():
     return _redirect_home(sid)
 
 
+@app.post("/quit")
+def quit_game():
+    """End the current run immediately. Forces is_game_over() True so the
+    GAME OVER screen renders with the player's current cash, debt, products
+    and locked-in final score — same flow as running out the clock."""
+    sid, state = _get_active_state()
+    if state is None:
+        return _redirect_home(sid)
+    state["day"] = engine.MAX_DAYS + 1
+    return _redirect_home(sid)
+
+
 @app.post("/buy")
 def buy():
     sid, state = _get_active_state()

@@ -270,6 +270,13 @@
     </div>
   </section>
 
+  <div class="g-quit">
+    <form method="post" action="{{ url_for('quit_game') }}"
+          onsubmit="return confirm('Quit this run? Your final score will be locked in.');">
+      <button type="submit" class="g-btn danger">Quit</button>
+    </form>
+  </div>
+
 </div>
 <div class="g-scan"></div>
 

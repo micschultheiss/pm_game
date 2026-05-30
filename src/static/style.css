@@ -139,6 +139,7 @@ html, body {
 .g-btn.next:hover { background: rgba(125,255,176,.12); }
 .g-btn.danger { color: var(--red); border-color: var(--red); }
 .g-btn.danger:hover { background: rgba(255,45,85,.1); }
+.g-quit { display: flex; justify-content: flex-end; margin-top: 24px; }
 
 /* ── action tabs (CSS-only: hidden radios drive which form shows) ── */
 .action-tab { position: absolute; opacity: 0; pointer-events: none; }
