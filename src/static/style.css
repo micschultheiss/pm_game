@@ -232,9 +232,24 @@ input:focus, select:focus { outline: 1px solid var(--accent); outline-offset: 0;
 #splash .hi-stage[data-effect="glitch"] .hi-word,
 #splash .hi-stage[data-effect="glitch"] .hi-inc {
   text-shadow: -2px 0 0 var(--hi-r), 2px 0 0 var(--hi-b);
-  /* engine ships the glitch jitter at 3.4s; settle the one-shot logo and
-     let it flicker only once every 30s. */
-  animation-duration: 30s;
+  /* No auto-loop: the splash script triggers each flicker by toggling
+     .glitch-now on #splash (first at 3s, then random 11–21s gaps). */
+  animation: none;
+}
+#splash.glitch-now .hi-stage[data-effect="glitch"] .hi-word,
+#splash.glitch-now .hi-stage[data-effect="glitch"] .hi-inc {
+  animation: splashGlitch .5s steps(1) 1;
+}
+@keyframes splashGlitch {
+  0%, 100% { transform: translate(0, 0);   text-shadow: -2px 0 0 var(--hi-r), 2px 0 0 var(--hi-b); }
+  20%      { transform: translate(-4px, 1px); text-shadow: -7px 0 0 var(--hi-r), 6px 0 0 var(--hi-b); }
+  40%      { transform: translate(3px, -2px); text-shadow:  6px 0 0 var(--hi-r), -5px 0 0 var(--hi-b); }
+  60%      { transform: translate(-3px, 1px); text-shadow: -6px 0 0 var(--hi-r), 5px 0 0 var(--hi-b); }
+  80%      { transform: translate(2px, 0);    text-shadow: -3px 0 0 var(--hi-r), 3px 0 0 var(--hi-b); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #splash.glitch-now .hi-stage[data-effect="glitch"] .hi-word,
+  #splash.glitch-now .hi-stage[data-effect="glitch"] .hi-inc { animation: none; }
 }
 @media (max-width: 640px) {
   #splash .hi-stage[data-effect="glitch"] .hi-word,

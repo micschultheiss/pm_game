@@ -108,6 +108,23 @@
   document.body.style.overflow = 'hidden';
   var cleanup = window.HALLU.mount(root, SPLASH_CFG);
 
+  // Glitch flicker schedule: first 3s after the logo has settled, then at a
+  // random 11–21s gap each time. (CSS can't randomise intervals, so JS drives
+  // it by toggling .glitch-now, which runs the splashGlitch keyframe once.)
+  var timers = [];
+  function flicker() {
+    root.classList.add('glitch-now');
+    timers.push(setTimeout(function () { root.classList.remove('glitch-now'); }, 520));
+    timers.push(setTimeout(flicker, 11000 + Math.random() * 10000));  // 11–21s
+  }
+  var waitForLogo = setInterval(function () {
+    var footer = root.querySelector('.hi-footer');
+    if (footer && footer.classList.contains('show')) {   // reveal finished
+      clearInterval(waitForLogo);
+      timers.push(setTimeout(flicker, 3000));            // first flicker 3s later
+    }
+  }, 150);
+
   var dismissed = false;
   function dismiss() {
     if (dismissed) return;
@@ -115,6 +132,8 @@
     root.classList.add('dismissed');
     document.body.style.overflow = '';
     if (typeof cleanup === 'function') cleanup();
+    clearInterval(waitForLogo);
+    timers.forEach(clearTimeout);
     document.removeEventListener('keydown', dismiss);
     setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); }, 500);
   }
