@@ -232,6 +232,9 @@ input:focus, select:focus { outline: 1px solid var(--accent); outline-offset: 0;
 #splash .hi-stage[data-effect="glitch"] .hi-word,
 #splash .hi-stage[data-effect="glitch"] .hi-inc {
   text-shadow: -2px 0 0 var(--hi-r), 2px 0 0 var(--hi-b);
+  /* engine ships the glitch jitter at 3.4s; settle the one-shot logo and
+     let it flicker only once every 30s. */
+  animation-duration: 30s;
 }
 @media (max-width: 640px) {
   #splash .hi-stage[data-effect="glitch"] .hi-word,

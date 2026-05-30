@@ -80,6 +80,8 @@
   // Boot log numbers track the live game ($100K cash / $100K debt @ 3%/day).
   var SPLASH_CFG = {
     effect: 'glitch', fill: '█', empty: ' ',
+    loop: false,  // play the boot sequence once, then settle on the logo
+
     // 13-letter HALLUCINATION is ~77 block-columns wide; keep it under ~1.9vw
     // so the line fits the viewport (a monospace char advance is ~0.6em).
     wordSize: 'clamp(7px, 1.9vw, 26px)',

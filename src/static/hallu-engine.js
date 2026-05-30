@@ -229,8 +229,8 @@
         raf = requestAnimationFrame(step);
       });
 
-      // hold, then loop
-      after(d + 360 + 900 + 7200, runCycle);
+      // hold, then loop — unless cfg.loop === false (one-shot: settle on the logo)
+      if (cfg.loop !== false) after(d + 360 + 900 + 7200, runCycle);
     }
 
     runCycle();
