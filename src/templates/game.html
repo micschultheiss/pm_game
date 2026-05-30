@@ -174,7 +174,7 @@
       <label for="tab-travel" class="tab">[ Travel ]</label>
       <label for="tab-borrow" class="tab">[ Borrow ]</label>
       <label for="tab-pay" class="tab">[ Pay ]</label>
-      <form method="post" action="{{ url_for('next_day') }}" style="margin-left:auto">
+      <form method="post" action="{{ url_for('next_day') }}" style="margin-left:auto" id="next-day-form">
         <button type="submit" class="g-btn next">Next day →</button>
       </form>
     </nav>
@@ -272,6 +272,22 @@
 
 </div>
 <div class="g-scan"></div>
+
+<script>
+// ── ENTER advances the day — but only when you're not typing into a form
+//    control, so ENTER still natively submits Buy/Sell/Craft/Travel/etc.
+(function () {
+  var form = document.getElementById('next-day-form');
+  if (!form) return;
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.repeat) return;
+    var t = e.target;
+    if (t && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(t.tagName)) return;
+    e.preventDefault();
+    form.submit();
+  });
+})();
+</script>
 
 {% endif %}
 

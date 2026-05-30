@@ -69,6 +69,24 @@
 
 <script src="{{ url_for('static', filename='hallu-engine.js') }}"></script>
 <script>
+// ── ENTER advances from the briefing into the game (submits "Start the run").
+//    Guarded so it doesn't fire while the boot splash is still up — there ENTER
+//    dismisses the splash instead (see the splash IIFE below). Lives outside
+//    that IIFE so it works even when the JS splash engine is unavailable.
+(function () {
+  var startForm = document.querySelector('.g-prompt');
+  if (!startForm) return;
+  function splashActive() {
+    var s = document.getElementById('splash');
+    return s && !s.hidden && !s.classList.contains('dismissed');
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.repeat || splashActive()) return;
+    e.preventDefault();
+    startForm.submit();
+  });
+})();
+
 (function () {
   var root = document.getElementById('splash');
   if (!root || !window.HALLU) return;  // no JS engine → skip straight to briefing
