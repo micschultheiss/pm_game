@@ -3,93 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hallucination Inc. — Briefing</title>
+  <title>Hallucination Inc.</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-{# Boot-sequence title splash (locked "Glitch" direction). Plays before the
-   briefing text; press ENTER or tap to dismiss. Pure presentation — degrades
-   gracefully to the briefing if JS is off (the overlay stays display:none). #}
+{# Boot-sequence title splash (locked "Glitch" direction). Plays once and
+   settles on the logo. Dismissing it (ENTER / click / tap) starts the game. #}
 <div id="splash" hidden></div>
 
-<div class="g-intro">
-  <div class="g-eyebrow">New game · briefing</div>
-  <h1><span class="g-glitch" data-t="HALLUCINATION INC.">HALLUCINATION INC.</span></h1>
-  <div class="g-sub">Where AI meets enterprise.</div>
-  <hr class="g-rule">
+{# Hidden form: the splash dismiss handler submits this to POST /start, which
+   redirects to / and renders the game. #}
+<form id="start-form" method="post" action="{{ url_for('start_game') }}" hidden></form>
 
-  <p class="g-lede">
-    AI is eating your lunch. You've just been laid off from your cushy PM gig at
-    one of the big tech giants — and now you're out to cash in on the
-    <span class="hl">SaaSocalypse</span>. Nobody has cracked enterprise-grade
-    software with the new AI coding tools yet. <span class="hl">That's where you come in.</span>
-  </p>
-
-  <div class="g-stakes">
-    <div class="s"><div class="n r">$100K</div><div class="l">starting debt</div></div>
-    <div class="s"><div class="n r">3% / day</div><div class="l">interest, compounding</div></div>
-    <div class="s"><div class="n a">{{ MAX_DAYS }} days</div><div class="l">to build a real business</div></div>
+<noscript>
+  <div style="padding:40px;text-align:center;color:#f3f3fb;background:#07070c;font-family:monospace">
+    <h1>HALLUCINATION INC.</h1>
+    <form method="post" action="{{ url_for('start_game') }}">
+      <button type="submit" class="g-btn solid">Start the run →</button>
+    </form>
   </div>
-
-  <div class="g-block">
-    <div class="bt">The basics — in plain English</div>
-    <ul class="g-list">
-      <li><span><b>Tokens</b> are the fuel AI runs on. Buy them by the million from the big labs — Anthropic, OpenAI, Google. Prices move daily; pricier providers ship higher quality.</span></li>
-      <li><span><b>Products</b> are finished AI SaaS solutions — a support bot, a compliance dashboard. You build each from a recipe of tokens over a few days.</span></li>
-      <li><span><b>Clients</b> are the companies and agencies that buy them. {{ ACTIVE_CLIENT_COUNT }} are live at once, each with a fixed budget — paid only if your product clears their quality bar.</span></li>
-    </ul>
-  </div>
-
-  <div class="g-block">
-    <div class="bt">Your job</div>
-    <p class="g-lede" style="font-size:16px">
-      Buy tokens <span class="hl">cheap</span> &nbsp;→&nbsp; build <span class="hl">quality</span> products
-      &nbsp;→&nbsp; sell for a <span class="hl">profit</span> — all before your debt eats you alive.
-    </p>
-  </div>
-
-  <div class="g-block">
-    <div class="bt">Good to know</div>
-    <ul class="g-list">
-      <li><span>Pay off your debt before day {{ MAX_DAYS }} for a <b>+${{ '{:,}'.format(DEBT_FREE_BONUS) }} debt-free bonus</b>.</span></li>
-      <li><span>A <b>sales trip</b> costs ${{ '{:,}'.format(TRAVEL_COST) }} and burns a day. Builds take 2–6 days and 50–225M tokens; storage caps at {{ MAX_TOKENS }}M.</span></li>
-      <li><span>{{ ACTIVE_CLIENT_COUNT }} clients live at once — they <b>rotate every few days</b>. Grab good deals fast.</span></li>
-      <li><span>Beating a client's quality bar pays up to <b>1.5× the budget</b>. Tokens and finished products <span class="hlr">lose quality as they age</span>.</span></li>
-    </ul>
-  </div>
-
-  <form method="post" action="{{ url_for('start_game') }}" class="g-prompt">
-    <span>{{ MAX_DAYS }} days on the clock. Good luck.</span>
-    <button type="submit" class="g-btn solid">Start the run →</button>
-  </form>
-</div>
+</noscript>
 
 <div class="g-scan"></div>
 
 <script src="{{ url_for('static', filename='hallu-engine.js') }}"></script>
 <script>
-// ── ENTER advances from the briefing into the game (submits "Start the run").
-//    Guarded so it doesn't fire while the boot splash is still up — there ENTER
-//    dismisses the splash instead (see the splash IIFE below). Lives outside
-//    that IIFE so it works even when the JS splash engine is unavailable.
-(function () {
-  var startForm = document.querySelector('.g-prompt');
-  if (!startForm) return;
-  function splashActive() {
-    var s = document.getElementById('splash');
-    return s && !s.hidden && !s.classList.contains('dismissed');
-  }
-  document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter' || e.repeat || splashActive()) return;
-    e.preventDefault();
-    startForm.submit();
-  });
-})();
-
 (function () {
   var root = document.getElementById('splash');
-  if (!root || !window.HALLU) return;  // no JS engine → skip straight to briefing
+  var startForm = document.getElementById('start-form');
+  if (!root || !window.HALLU || !startForm) return;  // no JS engine → noscript fallback shows
 
   var COPY = '© 2026 HALLUCINATION INC. — a wholly imagined subsidiary of ' +
     'nothing in particular. All hallucinations reserved. No tokens were harmed; ' +
@@ -148,14 +91,16 @@
     if (dismissed) return;
     dismissed = true;
     root.classList.add('dismissed');
-    document.body.style.overflow = '';
     if (typeof cleanup === 'function') cleanup();
     clearInterval(waitForLogo);
     timers.forEach(clearTimeout);
     document.removeEventListener('keydown', dismiss);
-    setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); }, 500);
+    startForm.submit();  // → POST /start → 303 / → game screen
   }
-  document.addEventListener('keydown', dismiss);
+  document.addEventListener('keydown', function (e) {
+    if (e.repeat) return;
+    dismiss();
+  });
   // Dismiss on ANY pointer interaction, not just a primary click. An Apple
   // trackpad two-finger tap fires a secondary/right click (button 2) which
   // emits `contextmenu`/`auxclick` but no `click` event — so a plain `click`
