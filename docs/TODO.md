@@ -4,6 +4,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 ## Now
 
+- [x] Fix splash not dismissing on Apple-trackpad two-finger tap — the title splash only listened for `click`, so a secondary/right click (`contextmenu`/`auxclick`, no `click`) left it up, looking like "Start did nothing". `welcome.html` now dismisses on `pointerdown` + `contextmenu` (preventDefault) as well; verified all pointer paths in the preview browser. 190 tests pass.
 - [x] Add a Quit button to the web frontend — `/quit` ends the run by forcing `state.day = MAX_DAYS+1`, reusing the existing GAME OVER screen to lock in the final score
 - [ ] Rework Mobile Web Screens
 - [ ] Tweak Desktop Web Version

@@ -156,7 +156,15 @@
     setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); }, 500);
   }
   document.addEventListener('keydown', dismiss);
-  root.addEventListener('click', dismiss);
+  // Dismiss on ANY pointer interaction, not just a primary click. An Apple
+  // trackpad two-finger tap fires a secondary/right click (button 2) which
+  // emits `contextmenu`/`auxclick` but no `click` event — so a plain `click`
+  // listener silently ignored those taps and left the splash up, making it
+  // look like Start "did nothing". pointerdown covers mouse (any button),
+  // touch and pen; contextmenu catches the right-click and suppresses the
+  // browser menu so the tap dismisses instead.
+  root.addEventListener('pointerdown', dismiss);
+  root.addEventListener('contextmenu', function (e) { e.preventDefault(); dismiss(); });
   root.addEventListener('touchstart', dismiss, { passive: true });
 })();
 </script>
