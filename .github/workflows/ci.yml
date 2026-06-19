@@ -1,0 +1,68 @@
+# CI/CD for Hallucination Inc.
+#
+# Pipeline: test -> deploy-staging -> deploy-prod.
+#   * test          runs on every push and pull request (the same suite +
+#                   90% coverage gate the .git/hooks/pre-commit hook runs).
+#   * deploy-staging runs only on a push to main, after `test` is green;
+#                   deploys to hallucination-inc-staging and health-checks it.
+#   * deploy-prod   runs only after staging deployed AND answered healthy.
+# Net effect: only a green build that survives staging can reach prod.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Tests + coverage gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'  # matches fly/Dockerfile
+      # run_tests.py is stdlib-only, but it imports web.py (Flask) to measure
+      # its coverage, so the web deps must be present.
+      - run: pip install -r requirements.txt
+      - run: python3 tests/run_tests.py
+
+  deploy-staging:
+    name: Deploy to staging
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency: deploy-staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # Build context stays at the repo root so the Dockerfile's `COPY . .`
+      # reaches the app source; the staging config scales to zero when idle.
+      - run: flyctl deploy --remote-only --config fly/fly.staging.toml --dockerfile fly/Dockerfile --ignorefile fly/.dockerignore .
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      # Gate prod on staging actually serving. Retry to absorb cold starts.
+      - name: Health-check staging
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://hallucination-inc-staging.fly.dev/ || true)
+            echo "attempt $i -> HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "staging did not return 200" && exit 1
+
+  deploy-prod:
+    name: Deploy to prod
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency: deploy-prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # Deploy config lives in fly/, but the build context must stay at the
+      # repo root so the Dockerfile's `COPY . .` can reach the app source.
+      - run: flyctl deploy --remote-only --config fly/fly.toml --dockerfile fly/Dockerfile --ignorefile fly/.dockerignore .
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -59,7 +59,7 @@ Fly.io wins on the specific combination we need: long-lived single instance, fre
 
 ## Deferred
 
-- **CI/CD pipeline.** Not needed while one person deploys from one machine. The hook to add later is a `.github/workflows/deploy.yml` that runs `python3 run_tests.py` and then `flyctl deploy --remote-only` on pushes to `main`, using a `FLY_API_TOKEN` repo secret. Worth setting up when either (a) another contributor joins, (b) we want deploys to fire without local flyctl, or (c) we add a separate staging app.
+- ~~**CI/CD pipeline.**~~ Done — see [ADR 006](006-ci-cd-pipeline.md). A three-stage `test → deploy-staging → deploy-prod` GitHub Actions pipeline now gates prod on a green test run and a healthy staging deploy.
 - **State externalization.** See "Things to watch."
 - **Custom domain.** `*.fly.dev` is fine for now; switch later via `fly certs add`.
 
