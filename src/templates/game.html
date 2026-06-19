@@ -111,55 +111,51 @@
     </div>
   </div>
 
-  {# Market — collapses to a one-line summary on mobile #}
-  <details class="g-disc" open>
-    <summary class="g-sec"><span class="g-disc-t">Today's market — <b>$/M tokens</b> at every provider</span><span class="g-disc-x">{% if location_info.type == 'provider' %}here · {{ state.location }} {{ '{:.0%}'.format(location_info.quality) }}{% else %}{{ market_grid|length }} providers{% endif %}</span></summary>
-    <div class="g-scroll">
-      <table class="g-table">
-        <thead><tr>
-          <th>Provider</th><th class="num">Qual</th>
-          {% for t in TOKEN_TYPES %}<th class="num">{{ t }}</th>{% endfor %}
-        </tr></thead>
-        <tbody>
-          {% for row in market_grid %}
-            <tr class="{% if row.here %}sel{% endif %}">
-              <td class="pname">{{ row.name }}</td>
-              <td class="num"><span class="g-q {{ qcls(row.quality)|trim }}">{{ '{:.0%}'.format(row.quality) }}</span></td>
-              {% for t, price in row.prices %}<td class="num price{% if row.here %} cur{% endif %}">${{ price }}</td>{% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </details>
+  {# Market #}
+  <div class="g-sec">Today's market — <b>$/M tokens</b> at every provider</div>
+  <div class="g-scroll">
+    <table class="g-table">
+      <thead><tr>
+        <th>Provider</th><th class="num">Qual</th>
+        {% for t in TOKEN_TYPES %}<th class="num">{{ t }}</th>{% endfor %}
+      </tr></thead>
+      <tbody>
+        {% for row in market_grid %}
+          <tr class="{% if row.here %}sel{% endif %}">
+            <td class="pname">{{ row.name }}</td>
+            <td class="num"><span class="g-q {{ qcls(row.quality)|trim }}">{{ '{:.0%}'.format(row.quality) }}</span></td>
+            {% for t, price in row.prices %}<td class="num price{% if row.here %} cur{% endif %}">${{ price }}</td>{% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-  {# Open contracts — collapses to a one-line summary on mobile #}
-  <details class="g-disc" open>
-    <summary class="g-sec"><span class="g-disc-t">Open contracts <b>(by payout)</b></span><span class="g-disc-x">{% if contracts %}{{ contracts|length }} live · top ${{ '{:,}'.format(contracts[0].budget) }}{% else %}none{% endif %}</span></summary>
-    {% if contracts %}
-    <div class="g-scroll">
-      <table class="g-table">
-        <thead><tr>
-          <th>Tag</th><th>Client</th><th>Product</th><th>Recipe</th><th class="num">Pays</th><th class="num">Min Q</th>
-        </tr></thead>
-        <tbody>
-          {% for r in contracts %}
-            <tr>
-              <td><span class="g-tag {{ r.tag|lower }}">{{ r.tag }}</span></td>
-              <td>{{ r.client }}</td>
-              <td class="cl">{{ r.product }}</td>
-              <td>{{ recipe(r.recipe_chips) }}</td>
-              <td class="num pays">${{ '{:,}'.format(r.budget) }}</td>
-              <td class="num"><span class="g-minq">≥{{ '{:.0%}'.format(r.min_quality) }}</span></td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-      <p style="color:var(--faint)">(no open contracts right now)</p>
-    {% endif %}
-  </details>
+  {# Open contracts #}
+  <div class="g-sec">Open contracts <b>(by payout)</b></div>
+  {% if contracts %}
+  <div class="g-scroll">
+    <table class="g-table">
+      <thead><tr>
+        <th>Tag</th><th>Client</th><th>Product</th><th>Recipe</th><th class="num">Pays</th><th class="num">Min Q</th>
+      </tr></thead>
+      <tbody>
+        {% for r in contracts %}
+          <tr>
+            <td><span class="g-tag {{ r.tag|lower }}">{{ r.tag }}</span></td>
+            <td>{{ r.client }}</td>
+            <td class="cl">{{ r.product }}</td>
+            <td>{{ recipe(r.recipe_chips) }}</td>
+            <td class="num pays">${{ '{:,}'.format(r.budget) }}</td>
+            <td class="num"><span class="g-minq">≥{{ '{:.0%}'.format(r.min_quality) }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p style="color:var(--faint)">(no open contracts right now)</p>
+  {% endif %}
 
   {# Actions — hidden radios drive which form panel shows #}
   <section class="actions">
@@ -296,16 +292,6 @@
     if (t && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(t.tagName)) return;
     e.preventDefault();
     form.submit();
-  });
-})();
-
-// ── On phones, collapse the Market + Contracts disclosures by default so the
-//    status, inventory, and action controls fit on one screen. They stay open
-//    on desktop and with JS off (progressive enhancement).
-(function () {
-  if (!window.matchMedia || !window.matchMedia('(max-width:640px)').matches) return;
-  document.querySelectorAll('details.g-disc[open]').forEach(function (d) {
-    d.removeAttribute('open');
   });
 })();
 </script>

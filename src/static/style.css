@@ -122,25 +122,6 @@ html, body {
 .g-table .pays { color: var(--green); font-weight: 700; }
 .g-table td.cl { color: var(--fg); }
 
-/* ── collapsible disclosures (Market / Contracts) ────────────────
-   <details> kept open on desktop and styled to read exactly like the old
-   .g-sec label (the toggle is inert here). On phones the trailing media query
-   makes them tappable, reveals a chevron + glance value, and a tiny script
-   collapses them by default so the action controls sit above the fold. */
-.g-disc { margin: 0; }
-.g-disc > summary.g-sec {
-  display: flex; align-items: center; gap: 10px;
-  list-style: none; cursor: default; pointer-events: none;
-}
-.g-disc > summary::-webkit-details-marker { display: none; }
-.g-disc > summary::after {
-  content: '▸'; margin-left: auto; color: var(--accent);
-  display: none; transition: transform .15s ease;
-}
-.g-disc[open] > summary::after { transform: rotate(90deg); }
-.g-disc-t { flex: 1 1 auto; min-width: 0; }
-.g-disc-x { display: none; flex: 0 0 auto; color: var(--dim); font-weight: 600; letter-spacing: .3px; text-transform: none; white-space: nowrap; }
-
 /* ── buttons / action dock ───────────────────────────────────── */
 .g-acts {
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 28px;
@@ -285,32 +266,19 @@ input:focus, select:focus { outline: 1px solid var(--accent); outline-offset: 0;
 /* ── responsive (replaces the design's JS-toggled .g-mobile) ──── */
 @media (max-width: 640px) {
   html, body { font-size: 14px; }
-  .g-pad { padding: 14px 14px 24px; }
+  .g-pad { padding: 18px 16px 30px; }
   .g-intro { padding: 26px 18px 44px; }
   .g-intro h1 { font-size: 18px; }
   .g-brand { font-size: 15px; }
-  .g-head { padding-bottom: 10px; }
   .g-stat { font-size: 12px; gap: 5px 9px; }
-  .g-banner { margin-top: 10px; }
-  .g-sec { margin: 13px 0 9px; }
-  .g-inv { gap: 8px 18px; margin-top: 11px; }
-
-  /* disclosures become tappable; chevron + glance value appear */
-  .g-disc > summary.g-sec { cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
-  .g-disc > summary::after { display: inline-block; }
-  .g-disc[open] { margin-bottom: 6px; }
-  .g-disc-x { display: inline; font-size: 12.5px; }
-  /* keep the glance value out of the way of the chevron */
-  .g-disc > summary.g-sec b { white-space: nowrap; }
-
-  .g-acts, .action-menu { gap: 8px; margin-top: 16px; padding-top: 14px; }
+  .g-sec { margin: 20px 0 10px; }
+  .g-inv { gap: 18px; }
+  .g-acts, .action-menu { gap: 8px; }
   .g-btn, .action-menu .tab { flex: 1 1 auto; text-align: center; }
   .g-btn.next, .action-menu .tab.next { margin-left: 0; flex-basis: 100%; }
-  .action-panel .form { margin-top: 12px; }
   .form form { flex-direction: column; align-items: stretch; }
   .form label { flex-direction: column; align-items: stretch; gap: 4px; }
   .form input, .form select { width: 100%; }
   .form button { width: 100%; }
-  .g-quit { margin-top: 14px; }
   .g-end { padding: 40px 18px; }
 }

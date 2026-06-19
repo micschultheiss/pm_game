@@ -6,7 +6,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 
 - [x] Fix splash not dismissing on Apple-trackpad two-finger tap — the title splash only listened for `click`, so a secondary/right click (`contextmenu`/`auxclick`, no `click`) left it up, looking like "Start did nothing". `welcome.html` now dismisses on `pointerdown` + `contextmenu` (preventDefault) as well; verified all pointer paths in the preview browser. 190 tests pass.
 - [x] Add a Quit button to the web frontend — `/quit` ends the run by forcing `state.day = MAX_DAYS+1`, reusing the existing GAME OVER screen to lock in the final score
-- [~] Rework Mobile Web Screens — game screen now fits on one phone screen: Market + Open Contracts are `<details>` disclosures that collapse to a one-line glance value on mobile (open + inert on desktop), so status, inventory and the full action menu sit above the fold. Spacing tightened, no font shrink. Briefing screen still TODO.
+- [ ] Rework Mobile Web Screens
 - [ ] Tweak Desktop Web Version
 - [~] Add keyboard Support in the browser — ENTER now advances briefing→game and advances the day (done); more shortcuts (action hotkeys) still open
 - [ ] Add mobile/tap support
