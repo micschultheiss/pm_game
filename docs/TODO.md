@@ -7,7 +7,7 @@ Working backlog. Active items live here; longer-form requirements live in [docs/
 - [x] Fix splash not dismissing on Apple-trackpad two-finger tap — the title splash only listened for `click`, so a secondary/right click (`contextmenu`/`auxclick`, no `click`) left it up, looking like "Start did nothing". `welcome.html` now dismisses on `pointerdown` + `contextmenu` (preventDefault) as well; verified all pointer paths in the preview browser. 190 tests pass.
 - [x] Add a Quit button to the web frontend — `/quit` ends the run by forcing `state.day = MAX_DAYS+1`, reusing the existing GAME OVER screen to lock in the final score
 - [ ] Rework Mobile Web Screens
-- [ ] Tweak Desktop Web Version
+- [~] Tweak Desktop Web Version — tightened the game screen's vertical spacing (paddings/margins on `.g-pad`, `.g-head`, `.g-sec`, `.g-inv`, `.g-banner`, `.g-table` rows, `.action-menu`, `.g-quit`) so the whole board fits one MacBook-14" screen (~880px viewport) without scrolling. No font shrink, nothing hidden; ~56px headroom even on an 8-contract day.
 - [~] Add keyboard Support in the browser — ENTER now advances briefing→game and advances the day (done); more shortcuts (action hotkeys) still open
 - [ ] Add mobile/tap support
 - [ ] Add a similar splash screen to the terminal version
