@@ -22,10 +22,14 @@ without a network call.
   [`scripts/sync_todo_from_linear.py`](../../scripts/sync_todo_from_linear.py).
   It pulls every issue in the project over the Linear GraphQL API and rewrites
   `docs/TODO.md` deterministically.
-- **Mapping:** issue priority → section (Urgent/High → *Now*, Medium → *Next*,
-  Low/None → *Later / ideas*); state type → checkbox (`completed` → `[x]`,
-  `started` → `[~]`, else `[ ]`); canceled issues are dropped; completed issues
-  collect under *Done*. Each line links back to its Linear issue (`MIC-…`).
+- **Mapping (mirrors the board columns):** workflow **state** → section —
+  later/backlog → *Later*, next → *Next*, now → *Now*, "in progress" →
+  *In Progress*, "in review" → *In Review*, done → *Done* (unknown names fall
+  back by type: completed → Done, started → In Progress, else Later). State type
+  → checkbox (`completed` → `[x]`, `started` → `[~]`, else `[ ]`); canceled
+  issues are dropped. Each line links to its Linear issue (`MIC-…`). The board
+  columns themselves are created/renamed by `scripts/setup_linear_board.py` (the
+  MCP can't mutate workflow states).
 - **Stdlib only** (`urllib` + `json`) — no new dependency, matching the
   engine/terminal zero-install convention. Reads `LINEAR_API_KEY` from the env
   (a personal key from <https://linear.app/settings/api>); never hardcoded.

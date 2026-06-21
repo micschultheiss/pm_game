@@ -5,12 +5,19 @@ a one-way pull (Linear → TODO.md). Edit issues in Linear, then run this to bri
 the file back in sync. Do not hand-edit docs/TODO.md; your changes get
 overwritten on the next sync.
 
-Mapping:
-  * Section  ← issue priority:  Urgent/High → "Now", Medium → "Next",
-                                Low/None → "Later / ideas".
-  * Checkbox ← issue state type: completed → [x], started → [~],
-                                 else → [ ]; canceled issues are dropped.
-  * Completed issues always land under "Done" regardless of priority.
+The file mirrors the Linear board: issues are grouped by **workflow state**
+(= board column), top to bottom:
+
+    Later → Next → Now → In Progress → In Review → Done
+
+  * Section  ← state name: later/backlog → Later, next → Next, now → Now,
+    "in progress" → In Progress, "in review" → In Review, done → Done. Unknown
+    names fall back by type (completed → Done, started → In Progress, else Later).
+  * Checkbox ← state type: completed → [x], started → [~], else [ ].
+  * Canceled issues are dropped.
+
+To set up the board columns themselves (the MCP can't create workflow states),
+run scripts/setup_linear_board.py once.
 
 Usage:
   LINEAR_API_KEY=lin_api_...  python3 scripts/sync_todo_from_linear.py
@@ -34,9 +41,25 @@ API_URL = "https://api.linear.app/graphql"
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TODO_PATH = os.path.join(REPO_ROOT, "docs", "TODO.md")
 
-# priority value (Linear: 0=None,1=Urgent,2=High,3=Medium,4=Low) → section key
-SECTION_OF_PRIORITY = {1: "now", 2: "now", 3: "next", 0: "later", 4: "later"}
-SECTIONS = [("now", "Now"), ("next", "Next"), ("later", "Later / ideas")]
+# section order, top to bottom (key, heading)
+SECTIONS = [
+    ("later", "Later"),
+    ("next", "Next"),
+    ("now", "Now"),
+    ("inprogress", "In Progress"),
+    ("inreview", "In Review"),
+    ("done", "Done"),
+]
+# workflow-state name (lowercased) → section key. "backlog" maps to Later so the
+# stock Backlog state and the renamed `later` land in the same place.
+NAME_SECTION = {
+    "later": "later", "backlog": "later",
+    "next": "next", "now": "now",
+    "in progress": "inprogress", "in review": "inreview",
+    "done": "done",
+}
+# fallback by state type when the name isn't one of the above
+TYPE_SECTION = {"completed": "done", "started": "inprogress"}
 
 QUERY = """
 query($after: String) {
@@ -51,8 +74,7 @@ query($after: String) {
       number
       title
       url
-      priority
-      state { type }
+      state { name type }
     }
   }
 }
@@ -87,22 +109,19 @@ def checkbox(state_type):
     return {"completed": "x", "started": "~"}.get(state_type, " ")
 
 
+def section_of(state):
+    name = (state.get("name") or "").strip().lower()
+    return NAME_SECTION.get(name) or TYPE_SECTION.get(state.get("type", ""), "later")
+
+
 def render(issues):
     """Build the TODO.md text deterministically (stable order, no timestamp)."""
-    buckets = {"now": [], "next": [], "later": [], "done": []}
+    buckets = {key: [] for key, _ in SECTIONS}
     for it in issues:
-        st = (it.get("state") or {}).get("type", "")
-        if st == "canceled":
+        st = it.get("state") or {}
+        if st.get("type") == "canceled":
             continue  # canceled issues are dropped, not shown
-        if st == "completed":
-            buckets["done"].append(it)
-        else:
-            buckets[SECTION_OF_PRIORITY.get(it.get("priority") or 0, "later")].append(it)
-
-    # started first, then by issue number — stable and reproducible
-    def sort_key(it):
-        started = 0 if (it.get("state") or {}).get("type") == "started" else 1
-        return (started, it.get("number") or 0)
+        buckets[section_of(st)].append(it)
 
     def line(it):
         return f"- [{checkbox((it.get('state') or {}).get('type', ''))}] " \
@@ -112,21 +131,16 @@ def render(issues):
         "# TODO",
         "",
         "> Generated from Linear — **do not edit by hand**. Linear is the source of truth.",
-        f"> Project: {PROJECT_NAME} · team Mics-playground · "
-        "regenerate with `python3 scripts/sync_todo_from_linear.py`.",
+        "> Grouped by board column (workflow state). Project: pm_game · team "
+        "Mics-playground · regenerate with `python3 scripts/sync_todo_from_linear.py`.",
         "",
     ]
     for key, heading in SECTIONS:
         out.append(f"## {heading}")
         out.append("")
-        rows = sorted(buckets[key], key=sort_key)
+        rows = sorted(buckets[key], key=lambda it: it.get("number") or 0)
         out.extend(line(it) for it in rows) if rows else out.append("_(none)_")
         out.append("")
-    out.append("## Done")
-    out.append("")
-    done = sorted(buckets["done"], key=lambda it: it.get("number") or 0)
-    out.extend(line(it) for it in done) if done else out.append("_(none)_")
-    out.append("")
     return "\n".join(out)
 
 
