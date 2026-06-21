@@ -60,15 +60,15 @@ PROVIDERS = {
     "Anthropic": {
         "quality": 0.95,
         "desc": "Mature",
-        "base_prices": {"Code": 8, "Reasoning": 30, "Image": 40, "Voice": 25, "Video": 50},
+        "base_prices": {"Code": 8, "Reasoning": 50, "Image": 40, "Voice": 25, "Video": 50},
     },
     "OpenAI": {
         "quality": 0.90,
         "desc": "Mature",
-        "base_prices": {"Code": 7, "Reasoning": 50, "Image": 20, "Voice": 15, "Video": 35},
+        "base_prices": {"Code": 7, "Reasoning": 30, "Image": 20, "Voice": 15, "Video": 35},
     },
     "Google": {
-        "quality": 0.70,
+        "quality": 0.80,
         "desc": "Growing",
         "base_prices": {"Code": 3, "Reasoning": 6, "Image": 2, "Voice": 3, "Video": 3},
     },
