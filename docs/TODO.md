@@ -1,59 +1,32 @@
 # TODO
 
-Working backlog. Active items live here; longer-form requirements live in [docs/Hallucination_Inc_PRD.md](docs/Hallucination_Inc_PRD.md).
+> Generated from Linear — **do not edit by hand**. Linear is the source of truth.
+> Project: pm_game · team Mics-playground · regenerate with `python3 scripts/sync_todo_from_linear.py`.
 
 ## Now
 
-- [x] Fix splash not dismissing on Apple-trackpad two-finger tap — the title splash only listened for `click`, so a secondary/right click (`contextmenu`/`auxclick`, no `click`) left it up, looking like "Start did nothing". `welcome.html` now dismisses on `pointerdown` + `contextmenu` (preventDefault) as well; verified all pointer paths in the preview browser. 190 tests pass.
-- [x] Add a Quit button to the web frontend — `/quit` ends the run by forcing `state.day = MAX_DAYS+1`, reusing the existing GAME OVER screen to lock in the final score
-- [ ] Rework Mobile Web Screens
-- [~] Tweak Desktop Web Version — tightened the game screen's vertical spacing (paddings/margins on `.g-pad`, `.g-head`, `.g-sec`, `.g-inv`, `.g-banner`, `.g-table` rows, `.action-menu`, `.g-quit`) so the whole board fits one MacBook-14" screen (~880px viewport) without scrolling. No font shrink, nothing hidden; ~56px headroom even on an 8-contract day.
-- [~] Add keyboard Support in the browser — ENTER now advances briefing→game and advances the day (done); more shortcuts (action hotkeys) still open
-- [ ] Add mobile/tap support
-- [ ] Add a similar splash screen to the terminal version
+- [~] Tweak desktop web version (game-screen polish) ([MIC-6](https://linear.app/mics-playground/issue/MIC-6/tweak-desktop-web-version-game-screen-polish))
+- [~] Add more keyboard shortcuts in the browser (action hotkeys) ([MIC-7](https://linear.app/mics-playground/issue/MIC-7/add-more-keyboard-shortcuts-in-the-browser-action-hotkeys))
+- [ ] Rework mobile web screens ([MIC-5](https://linear.app/mics-playground/issue/MIC-5/rework-mobile-web-screens))
+- [ ] Add mobile/tap support ([MIC-8](https://linear.app/mics-playground/issue/MIC-8/add-mobiletap-support))
+- [ ] Add a title/boot splash to the terminal version ([MIC-9](https://linear.app/mics-playground/issue/MIC-9/add-a-titleboot-splash-to-the-terminal-version))
 
 ## Next
 
-- [ ] debt free bonus is 100k - find a nice rectification for it
-- [ ] Add one or two new event categories (e.g. open-source model release, hiring freeze)
-- [ ] Surface why a productive move is unavailable when bankruptcy fires
-- [ ] Brand Asset Generator still uneconomical — despite the buff, only 15 builds (0.6% share) across 1000 planner runs. 100% conversion when built, so demand is fine; recipe economics still don't compete. Try: lower Code requirement, raise base value, or add a higher-tier client to its wants list.
-- [ ] Compliance Dashboard drift/decay — 24% of planner builds but only 52% conversion across 1000 runs. The 6-day build outpaces drift/decay; half end up unsellable. Options: shorten craft_days to 5, lower decay sensitivity for slow products, or split into two cheaper variants.
-- [~] Check token prices and software prices ratios and align with real world numbers — prices realigned + Google quality bumped (2026-06-21): Anthropic now the price leader (Reasoning 30→50), OpenAI Reasoning 50→30 (fixes the inversion so price tracks quality), Google quality 0.70→0.80 (frontier Gemini 3). Net balance impact (simulate.py, noisy): harder — planner win ~33–43%→~22–30%, bankruptcy ~6%→~8–9%, median NW ~break-even→clearly negative. Realism over balance — user chose **full realism** (2026-06-21); softening/offset declined, the harder difficulty is intentional. Only remaining open piece: software-price (recipe base_value) ratios vs real SaaS pricing, still unreviewed.
-  - Research (2026-06, web-sourced + Claude API ref): game structure still sound (premium/mid/cheap tiers, ~10× spread, "reasoning" band ≈ real flagship *output* prices). Real 2026 flagship $/M (in/out): Anthropic Fable 5 $10/$50, Opus 4.8 $5/$25, Sonnet 4.6 $3/$15; OpenAI GPT-5.5 $5/$30, GPT-5.4 $2.50/$15; Google Gemini 3.1 Pro $2/$12 (→$4/$18 long-ctx), 3.5 Flash $1.50/$9; Mistral Large 3 $2/$6; Meta/Llama open-weights ~$0.20–1 via hosts. Prices did NOT broadly rise — long trend is down, but a new ultra-premium frontier tier (Fable $50, GPT-5.5 $30) stacked on top. Gaps vs current engine PROVIDERS: (1) no top tier above Anthropic; (2) premium ordering inverted — game charges OpenAI more for Reasoning ($50) than Anthropic ($30) despite lower quality, real-world Anthropic is price leader; (3) Google underrated at 0.70 — Gemini 3 is now frontier-class (~0.80); (4) unmodeled new economics: prompt caching (~0.1× cached input), batch (50% off), context-tiered/long-context premiums. Proposed minimal fix: make Anthropic the price leader (raise its top band, drop OpenAI's $50 reasoning), optionally bump Google quality 0.70→~0.80 (load-bearing — sim-check via simulate.py before/after). Deferred pending decision on scope.
+- [ ] Rework the $100k debt-free bonus ([MIC-10](https://linear.app/mics-playground/issue/MIC-10/rework-the-dollar100k-debt-free-bonus))
+- [ ] Add 1–2 new event categories ([MIC-11](https://linear.app/mics-playground/issue/MIC-11/add-1-2-new-event-categories))
+- [ ] Surface why a productive move is unavailable when bankruptcy fires ([MIC-12](https://linear.app/mics-playground/issue/MIC-12/surface-why-a-productive-move-is-unavailable-when-bankruptcy-fires))
+- [ ] Balance: Brand Asset Generator is uneconomical ([MIC-13](https://linear.app/mics-playground/issue/MIC-13/balance-brand-asset-generator-is-uneconomical))
+- [ ] Balance: Compliance Dashboard drift/decay (low conversion) ([MIC-14](https://linear.app/mics-playground/issue/MIC-14/balance-compliance-dashboard-driftdecay-low-conversion))
+- [ ] Review SaaS product base_values vs real enterprise pricing ([MIC-15](https://linear.app/mics-playground/issue/MIC-15/review-saas-product-base-values-vs-real-enterprise-pricing))
 
 ## Later / ideas
 
-- [ ] Optional local session summary file for tracking runs
-- [ ] End-of-run "what if" replay showing the best missed move
-- [ ] Think about different pricing models like yearly licences, seat based pricing etc
-- [ ] Externalize `_games` to Redis or SQLite so deploys / multi-worker / scale-to-zero stop wiping in-progress runs
+- [ ] Optional local session summary file for tracking runs ([MIC-16](https://linear.app/mics-playground/issue/MIC-16/optional-local-session-summary-file-for-tracking-runs))
+- [ ] End-of-run "what if" replay showing the best missed move ([MIC-17](https://linear.app/mics-playground/issue/MIC-17/end-of-run-what-if-replay-showing-the-best-missed-move))
+- [ ] Explore alternative pricing models (annual licences, seat-based) ([MIC-18](https://linear.app/mics-playground/issue/MIC-18/explore-alternative-pricing-models-annual-licences-seat-based))
+- [ ] Externalize _games to Redis/SQLite (survive deploys) ([MIC-19](https://linear.app/mics-playground/issue/MIC-19/externalize-games-to-redissqlite-survive-deploys))
 
 ## Done
 
-- [x] CI/CD pipeline — `.github/workflows/ci.yml` runs `test → deploy-staging → deploy-prod`; prod ships only on a green test run + a healthy `hallucination-inc-staging` deploy. Replaces the ungated `fly-deploy.yml`. See [ADR 006](adr/006-ci-cd-pipeline.md). Follow-up: ensure `FLY_API_TOKEN` is org-scoped so the staging job can deploy.
-- [x] ENTER advances the screen in the web frontend — on the briefing, ENTER submits "Start the run" (guarded so it doesn't fire while the boot splash is still up, where ENTER dismisses the splash instead); on the game screen, ENTER submits "Next day", but only when focus isn't in a form control so ENTER still natively submits Buy/Sell/Craft/Travel/Borrow/Pay. Pure presentation in `welcome.html` / `game.html`; verified both paths via the preview browser. 194 tests pass.
-- [x] Add the boot-sequence title splash before the briefing — vendored the design's framework-free `hallu-engine.js` into `src/static/`; `welcome.html` mounts it into a full-screen `#splash` overlay (locked Glitch config: boot log → ASCII column-sweep reveal → tagline + blinking prompt + mock copyright). Enter/click/tap dismisses it to the briefing; scroll-locked while up; degrades gracefully with JS off. Softened the chromatic split (±2px desktop / ±1px mobile) and sized the wordmark `clamp(7px,1.9vw,26px)` so it fits every viewport. Verified desktop + mobile via the preview browser. 190 tests still pass. See [ADR 005](adr/005-web-visual-design.md) "Follow-up — title splash".
-- [x] Reskin the web frontend to the Claude Design "Glitch terminal" direction — ported the handoff bundle (`Hallucination Inc Game Screens.html`): briefing screen (`welcome.html`) and game screen Option A "Terminal Classic" (`game.html`) rebuilt against `game.css`'s design tokens; new `src/static/style.css` design system; CSS chromatic glitch wordmark; color-coded recipe chips (Co/Re/Im/Vo/Vi) via a new `_recipe_chips` view helper. Mobile-friendly via real CSS media queries (replacing the design's JS-toggled `.g-mobile`); dense tables scroll horizontally on phones. End/bankruptcy screens restyled in the new palette. 190 tests pass, web coverage 100%. See [ADR 005](adr/005-web-visual-design.md).
-- [x] Restructure repo: program modules → `src/` (engine, terminal, web, templates, static), tooling → `tests/` (run_tests, simulate), backlog → `docs/TODO.md`. Only the launcher stays in root (plus README/CLAUDE). `src/` reaches the import path via the launcher and `tests/_bootstrap.py`; Dockerfile gunicorn uses `--pythonpath src`; pre-commit runs `python3 tests/run_tests.py`. 190 tests pass, coverage unchanged.
-- [x] Move deployment config into a `fly/` directory — `fly.toml`, `Dockerfile`, `.dockerignore` relocated via `git mv`; build context stays at repo root and the Actions workflow passes `--config/--dockerfile/--ignorefile` flags; `.dockerignore` + docs updated. `flyctl config validate` passes.
-- [x] Move the test suite into a `tests/` directory — relocated `test_engine.py`, `test_terminal.py`, `test_web.py`, `test_helpers.py` via `git mv`; `run_tests.py` discovers `tests/` and pins `PROJECT_ROOT` on `sys.path`; pre-commit pattern + docs updated. 190 tests pass, coverage unchanged.
-- [x] Add smoke tests for `web.py` — `test_web.py` covers the welcome → game flow, each action route round-trip + validation branches, `/new` reset, the stale-session bailout, every view helper, and both end screens. Added to the coverage gate; 100% on 208 stmts. Total suite now 190 tests.
-- [x] Publish the web frontend on Fly.io (`hallucination-inc.fly.dev`) — first `fly launch` + `fly deploy` ran against the config from [ADR 004](docs/adr/004-deployment-flyio.md) (Dockerfile + fly.toml, region fra, single warm machine).
-- [x] Wire GitHub Actions deploy pipeline — [.github/workflows/fly-deploy.yml](.github/workflows/fly-deploy.yml) runs `flyctl deploy --remote-only` on every push to `main`.
-- [x] Step 4 of engine split — `web.py` Flask frontend reusing the engine. Routes for buy/craft/sell/travel/next/borrow/pay/new; in-memory state keyed by a cookie session id; Jinja2 template + CSS that mirror the terminal layout (banner, market grid, contracts table, action menu). `python3 hallucination_inc.py --web` dispatches into it; default still runs the terminal. Engine and terminal stay stdlib-only — Flask is the only project dep, pinned in `requirements.txt`. Smoke-tested end to end via Flask dev server + curl.
-- [x] Step 3 of engine split — split `test_hallucination_inc.py` into `test_engine.py` (engine logic) + `test_terminal.py` (UI), with shared fixtures in `test_helpers.py`. Tests now import `engine` / `terminal` directly. `hallucination_inc.py` shed its re-export shim and is now a 15-line launcher (`from terminal import main; main()`). 154 tests still pass; coverage unchanged (92.7% engine, 96.0% terminal).
-- [x] Step 2 of engine split — UI moved into its own `terminal.py`; `hallucination_inc.py` is now a thin entry-point launcher plus a transitional compat shim for `import hallucination_inc as g`. Dropped a stray duplicate `compute_market_demand` that lived in both engine and terminal. Coverage gate now tracks `engine.py` + `terminal.py` (the launcher is pure import-time glue, not worth gating). 154 tests still pass; coverage 92.7% engine, 96.0% terminal.
-- [x] Step 1 of engine split — extracted `engine.py` (pure logic), kept `hallucination_inc.py` as terminal frontend re-exporting engine surface for test compatibility. Added `is_bankrupt` / `is_game_over` oracles. simulate.py now imports `engine` directly. 154 tests still pass; coverage 91% engine, 95.5% terminal.
-- [x] Add unit tests + 90% stdlib coverage gate wired into pre-commit (current: 95.6% on hallucination_inc.py, 154 tests)
-- [x] Make empty enter the next turn
-- [x] Rebalance the game mechanics (planner win 44% → 58%, median NW $35K → $169K after 5-variant pass)
-- [x] Sort the travel destinations (customers as on the customer list)
-- [x] Randomize starting provider — each run opens at a different lab
-- [x] Show full provider price grid consistently — always on the dashboard and at the top of the travel menu (peer to the open-contracts board)
-- [x] Widen lower-tier price variance — dropped the $5 floor that was flatlining Google/Mistral/Meta to a uniform $5
-- [x] Tune debt interest vs. starting cash after recent rebalance (5% → 3% + debt-free bonus)
-- [x] Buff Brand Asset Generator — added to Walmart/Salesforce wants, base value $55K → $65K (share 0.3% → 1.0%)
-- [x] Rescue Meta provider — quality 0.50 → 0.55 (now visited 181 times in 10K planner games)
-- [x] ~~Rescue Mistral provider~~ — resolved by the price-variance fix; 1000-run planner sim shows Mistral 173 visits vs. Meta 108, so Mistral is no longer eclipsed
-- [x] More client templates (mid-market, agency, startup) — added TechCrunch Startups, Local Gov Council, Etsy
+_(none)_

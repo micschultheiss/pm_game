@@ -76,7 +76,12 @@ Use `tests/simulate.py` to run headless games before/after a change. A change th
 ## Memory & docs maintenance
 
 After completing any task that changes behaviour, architecture, or decisions:
-- Update `docs/TODO.md` — check off done items, add newly discovered tasks
+- Update the backlog **in Linear** — Linear is the source of truth for the
+  `pm_game` project (team Mics-playground). Check off / add / re-prioritise
+  issues there, not in `docs/TODO.md`.
+- `docs/TODO.md` is **generated** from Linear — do not hand-edit it. Regenerate
+  with `python3 scripts/sync_todo_from_linear.py` (needs `LINEAR_API_KEY`; one-way
+  Linear → file). `--check` exits non-zero on drift. See [ADR 007](docs/adr/007-linear-backlog-sync.md).
 - Append to `.github/NOTES.md` with date + what changed and why
 - If a new technical decision was made, create or update the relevant `docs/adr/`
 - If architecture changed, update `docs/architecture.md`
