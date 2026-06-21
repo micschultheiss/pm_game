@@ -60,8 +60,11 @@ without a network call.
 **Costs / things to watch:**
 
 - Running the sync needs a `LINEAR_API_KEY`; without it the file goes stale. A
-  `--check` step in CI (with the key as a secret) would enforce freshness — not
-  wired up yet, since it needs the secret and network egress in the pipeline.
+  `todo-sync` job in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+  runs `--check` to enforce freshness. It is **independent of the deploy gate**
+  (drift fails the build/PR status but doesn't block a prod deploy) and **no-ops
+  until the `LINEAR_API_KEY` repo secret is set** (and on fork PRs, which can't
+  read secrets), so it never blocks the build before the key is configured.
 - The project name (`pm_game`) is hardcoded in the script; renaming the Linear
   project means editing `PROJECT_NAME`.
 - History/rationale that used to sit inline in `TODO.md` (e.g. the 2026

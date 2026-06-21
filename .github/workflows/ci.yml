@@ -6,6 +6,9 @@
 #   * deploy-staging runs only on a push to main, after `test` is green;
 #                   deploys to hallucination-inc-staging and health-checks it.
 #   * deploy-prod   runs only after staging deployed AND answered healthy.
+#   * todo-sync     checks docs/TODO.md still matches Linear (ADR 007). It runs
+#                   independently of the deploy gate: drift fails the build (red
+#                   check / PR status) but does not block a prod deploy.
 # Net effect: only a green build that survives staging can reach prod.
 name: CI
 
@@ -26,6 +29,25 @@ jobs:
       # its coverage, so the web deps must be present.
       - run: pip install -r requirements.txt
       - run: python3 tests/run_tests.py
+
+  todo-sync:
+    name: TODO.md in sync with Linear
+    runs-on: ubuntu-latest
+    # Linear is the backlog source of truth; docs/TODO.md is generated (ADR 007).
+    # Not a dependency of the deploy jobs — a docs drift shouldn't wedge prod.
+    env:
+      LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      # No-op until LINEAR_API_KEY is set as a repo secret (also no-ops on fork
+      # PRs, which can't read secrets). Once configured, a docs/TODO.md that has
+      # drifted from Linear fails this job.
+      - name: Check docs/TODO.md against Linear
+        if: env.LINEAR_API_KEY != ''
+        run: python3 scripts/sync_todo_from_linear.py --check
 
   deploy-staging:
     name: Deploy to staging
