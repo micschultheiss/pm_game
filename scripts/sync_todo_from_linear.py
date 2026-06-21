@@ -16,8 +16,8 @@ The file mirrors the Linear board: issues are grouped by **workflow state**
   * Checkbox ← state type: completed → [x], started → [~], else [ ].
   * Canceled issues are dropped.
 
-To set up the board columns themselves (the MCP can't create workflow states),
-run scripts/setup_linear_board.py once.
+The board columns (workflow states) themselves are managed in Linear's team
+settings — neither this script nor the integration creates them.
 
 Usage:
   LINEAR_API_KEY=lin_api_...  python3 scripts/sync_todo_from_linear.py

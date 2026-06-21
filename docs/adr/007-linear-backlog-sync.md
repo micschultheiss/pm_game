@@ -28,8 +28,8 @@ without a network call.
   back by type: completed → Done, started → In Progress, else Later). State type
   → checkbox (`completed` → `[x]`, `started` → `[~]`, else `[ ]`); canceled
   issues are dropped. Each line links to its Linear issue (`MIC-…`). The board
-  columns themselves are created/renamed by `scripts/setup_linear_board.py` (the
-  MCP can't mutate workflow states).
+  columns (workflow states) themselves are managed in Linear's team settings —
+  neither the integration nor this sync tool creates them.
 - **Stdlib only** (`urllib` + `json`) — no new dependency, matching the
   engine/terminal zero-install convention. Reads `LINEAR_API_KEY` from the env
   (a personal key from <https://linear.app/settings/api>); never hardcoded.
