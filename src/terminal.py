@@ -19,6 +19,7 @@ from engine import (
     DEBT_FREE_BONUS,
     MAX_DAYS,
     MAX_TOKENS,
+    MAX_VISIBLE_CONTRACTS,
     PRODUCTS,
     PROVIDERS,
     TOKEN_ABBREV,
@@ -191,6 +192,7 @@ def show_open_contracts(state):
         for prod_name, info in client["current_wants"].items():
             rows.append((info["budget"], tag, client["name"], prod_name, info["min_quality"]))
     rows.sort(reverse=True, key=lambda r: r[0])
+    rows = rows[:MAX_VISIBLE_CONTRACTS]
     if not rows:
         print("  Open contracts: (none right now)")
         return

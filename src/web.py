@@ -367,7 +367,7 @@ def _contracts_view(state):
                 "recipe_chips": _recipe_chips(prod_name),
             })
     rows.sort(key=lambda r: -r["budget"])
-    return rows
+    return rows[:engine.MAX_VISIBLE_CONTRACTS]
 
 
 def _sellables_at_current_location(state):

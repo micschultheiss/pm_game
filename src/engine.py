@@ -38,6 +38,7 @@ TRAVEL_COST           = 30_000  # biz dev / sales travel — pitch decks aren't 
 MAX_TOKENS            = 500     # max storage in millions of tokens
 QUALITY_BONUS_CAP     = 1.5     # max premium for over-spec quality
 ACTIVE_CLIENT_COUNT   = 6       # number of clients live on the board at once
+MAX_VISIBLE_CONTRACTS = 7       # cap on the open-contracts board (top N by payout)
 CLIENT_ROTATION_MIN   = 3       # min days between partial rotations
 CLIENT_ROTATION_MAX   = 7       # max days between partial rotations
 CLIENT_DRIFT_CHANCE   = 0.10    # daily chance per client to shift a budget
