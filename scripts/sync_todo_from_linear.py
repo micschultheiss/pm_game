@@ -47,15 +47,17 @@ SECTIONS = [
     ("next", "Next"),
     ("now", "Now"),
     ("inprogress", "In Progress"),
+    ("qa", "QA"),
     ("inreview", "In Review"),
     ("done", "Done"),
 ]
 # workflow-state name (lowercased) → section key. "backlog" maps to Later so the
-# stock Backlog state and the renamed `later` land in the same place.
+# stock Backlog state and the renamed `later` land in the same place. "qa" is the
+# staging-verification gate used by the board watcher (scripts/linear_watch.py).
 NAME_SECTION = {
     "later": "later", "backlog": "later",
     "next": "next", "now": "now",
-    "in progress": "inprogress", "in review": "inreview",
+    "in progress": "inprogress", "qa": "qa", "in review": "inreview",
     "done": "done",
 }
 # fallback by state type when the name isn't one of the above
