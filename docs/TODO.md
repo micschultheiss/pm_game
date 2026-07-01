@@ -36,6 +36,10 @@ _(none)_
 
 _(none)_
 
+## Deploy
+
+_(none)_
+
 ## Done
 
 - [x] Add more keyboard shortcuts in the browser (action hotkeys) ([MIC-7](https://linear.app/mics-playground/issue/MIC-7/add-more-keyboard-shortcuts-in-the-browser-action-hotkeys))

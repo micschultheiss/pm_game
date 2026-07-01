@@ -1,0 +1,61 @@
+# Hosted Linear board watcher — the cloud replacement for the in-session /loop.
+#
+# Every few minutes this polls the pm_game Linear board and runs ONE tick
+# (scripts/autobuild.py):
+#   * cards in "Deploy"   -> merge branch to main, deploy prod, move to Done
+#   * first card in "Todo" -> branch, headless Claude builds it, tests, deploy
+#                             staging, move to "In Review" for human QA
+# See docs/linear-autobuild.md for the full state machine.
+#
+# Secrets required (repo settings -> Secrets and variables -> Actions):
+#   LINEAR_API_KEY     (already set)  — read board, move cards, comment
+#   FLY_API_TOKEN      (already set)  — deploy staging + prod
+#   ANTHROPIC_API_KEY  (ADD THIS)     — headless Claude for the build step
+#
+# A GITHUB_TOKEN push to main does NOT re-trigger ci.yml, so the ship phase
+# deploys prod inline (same flyctl commands ci.yml uses) rather than relying on
+# push-triggered CI.
+name: Linear autobuild
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # every 5 minutes (GitHub queues cron; real cadence can lag a few min)
+  workflow_dispatch: {}      # manual "run a tick now" button, for the first supervised run
+
+# Never run two ticks at once (a build can outlast the 5-minute interval).
+concurrency:
+  group: linear-autobuild
+  cancel-in-progress: false
+
+permissions:
+  contents: write            # branch + main pushes
+
+jobs:
+  tick:
+    name: One board tick
+    runs-on: ubuntu-latest
+    env:
+      LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0     # need full history + other branches for merge/ship
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'   # matches fly/Dockerfile
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # Tests import web.py (Flask) to measure coverage, so web deps are needed.
+      - run: pip install -r requirements.txt
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Configure git identity for autobuild commits
+        run: |
+          git config user.name  "pm_game autobuild"
+          git config user.email "autobuild@users.noreply.github.com"
+      # No-ops (quietly) until ANTHROPIC_API_KEY is set. Guarding here avoids
+      # burning a build step when the key is absent.
+      - name: Run one tick
+        if: env.ANTHROPIC_API_KEY != '' && env.LINEAR_API_KEY != ''
+        run: python3 scripts/autobuild.py tick
