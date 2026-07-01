@@ -79,6 +79,18 @@ After completing any task that changes behaviour, architecture, or decisions:
 - Update the backlog **in Linear** — Linear is the source of truth for the
   `pm_game` project (team Mics-playground). Check off / add / re-prioritise
   issues there, not in `docs/TODO.md`.
+- **When a ticket is finished, close the loop on the Linear issue** (always,
+  not only when asked). Move it to the right state (`Done` when shipped) and
+  add a comment with these three things:
+  1. **Commits** — link every git commit for the work as a full GitHub URL
+     (`https://github.com/micschultheiss/pm_game/commit/<sha>`), and attach the
+     same URL as a Linear link so it shows on the issue.
+  2. **Proof of work** — concrete evidence it works: test results (pass count +
+     coverage), and browser/preview verification for web changes (what you
+     checked and the outcome; paste a screenshot when there's a visual change).
+  3. **Short description** — 1–3 sentences on what you did and how.
+  Use `mcp__plugin_productivity_linear__save_comment` for the comment and
+  `save_issue`'s `links` for the commit link attachment.
 - `docs/TODO.md` is **generated** from Linear — do not hand-edit it. Regenerate
   with `python3 scripts/sync_todo_from_linear.py` (needs `LINEAR_API_KEY`; one-way
   Linear → file). `--check` exits non-zero on drift. See [ADR 007](docs/adr/007-linear-backlog-sync.md).
