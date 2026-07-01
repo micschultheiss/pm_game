@@ -168,14 +168,14 @@
     <input type="radio" name="action-tab" id="tab-pay" class="action-tab">
 
     <nav class="action-menu" aria-label="Actions">
-      {% if location_info.type == 'provider' %}<label for="tab-buy" class="tab">[ Buy ]</label>{% endif %}
-      {% if location_info.type == 'client' and not location_info.stale %}<label for="tab-sell" class="tab">[ Sell ]</label>{% endif %}
-      <label for="tab-craft" class="tab">[ Craft ]</label>
-      <label for="tab-travel" class="tab">[ Travel ]</label>
-      <label for="tab-borrow" class="tab">[ Borrow ]</label>
-      <label for="tab-pay" class="tab">[ Pay ]</label>
+      {% if location_info.type == 'provider' %}<label for="tab-buy" class="tab" title="Shortcut: B">[ <u>B</u>uy ]</label>{% endif %}
+      {% if location_info.type == 'client' and not location_info.stale %}<label for="tab-sell" class="tab" title="Shortcut: S">[ <u>S</u>ell ]</label>{% endif %}
+      <label for="tab-craft" class="tab" title="Shortcut: C">[ <u>C</u>raft ]</label>
+      <label for="tab-travel" class="tab" title="Shortcut: T">[ <u>T</u>ravel ]</label>
+      <label for="tab-borrow" class="tab" title="Shortcut: O">[ B<u>o</u>rrow ]</label>
+      <label for="tab-pay" class="tab" title="Shortcut: P">[ <u>P</u>ay ]</label>
       <form method="post" action="{{ url_for('next_day') }}" style="margin-left:auto" id="next-day-form">
-        <button type="submit" class="g-btn next">Next day →</button>
+        <button type="submit" class="g-btn next" title="Shortcut: Enter">Next day ↵</button>
       </form>
     </nav>
 
@@ -281,17 +281,57 @@
 <div class="g-scan"></div>
 
 <script>
-// ── ENTER advances the day — but only when you're not typing into a form
-//    control, so ENTER still natively submits Buy/Sell/Craft/Travel/etc.
+// ── Keyboard shortcuts (pure presentation) ──────────────────────────
+//    ENTER advances the day; single letters open action panels; ESC closes.
+//    All guarded so keys never fire while you're typing into a form control,
+//    so ENTER still natively submits Buy/Sell/Craft/Travel/etc. and typing a
+//    quantity like "10" never trips a hotkey.
 (function () {
-  var form = document.getElementById('next-day-form');
-  if (!form) return;
+  var nextForm = document.getElementById('next-day-form');
+  // Letter → the hidden radio that reveals each action panel. Buy/Sell only
+  // exist at the relevant location, so their radios may be absent — skipped.
+  var HOTKEYS = {
+    b: 'tab-buy', s: 'tab-sell', c: 'tab-craft',
+    t: 'tab-travel', o: 'tab-borrow', p: 'tab-pay'
+  };
+
+  function typingInto(t) {
+    return t && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(t.tagName);
+  }
+
+  function closePanels() {
+    var none = document.getElementById('tab-none');
+    if (none) none.checked = true;
+  }
+
+  function openPanel(id) {
+    var radio = document.getElementById(id);
+    if (!radio) return false;            // action not available here
+    radio.checked = true;
+    // Jump focus into the freshly-revealed panel for immediate typing.
+    var panel = document.querySelector('.action-panel .form-' + id.slice(4));
+    var field = panel && panel.querySelector('input, select');
+    if (field) field.focus();
+    return true;
+  }
+
   document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter' || e.repeat) return;
-    var t = e.target;
-    if (t && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(t.tagName)) return;
-    e.preventDefault();
-    form.submit();
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+
+    if (typingInto(e.target)) {
+      // Let ESC bail out of a focused field back to the board.
+      if (e.key === 'Escape') { e.target.blur(); closePanels(); }
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      if (nextForm) { e.preventDefault(); nextForm.submit(); }
+      return;
+    }
+    if (e.key === 'Escape') { closePanels(); return; }
+
+    var id = HOTKEYS[e.key.toLowerCase()];
+    if (id && openPanel(id)) e.preventDefault();
   });
 })();
 </script>
