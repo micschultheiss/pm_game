@@ -10,7 +10,10 @@
 # Secrets required (repo settings -> Secrets and variables -> Actions):
 #   LINEAR_API_KEY     (already set)  — read board, move cards, comment
 #   FLY_API_TOKEN      (already set)  — deploy staging + prod
-#   ANTHROPIC_API_KEY  (ADD THIS)     — headless Claude for the build step
+#   Claude auth — set EXACTLY ONE of these for the headless build step:
+#     ANTHROPIC_API_KEY       — an API key from console.anthropic.com (API billing)
+#     CLAUDE_CODE_OAUTH_TOKEN — a Claude Pro/Max subscription token; generate it
+#                               locally with `claude setup-token`
 #
 # A GITHUB_TOKEN push to main does NOT re-trigger ci.yml, so the ship phase
 # deploys prod inline (same flyctl commands ci.yml uses) rather than relying on
@@ -36,7 +39,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+      # Claude reads whichever is set; provide exactly one (see header).
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
       - uses: actions/checkout@v5
@@ -54,8 +59,8 @@ jobs:
         run: |
           git config user.name  "pm_game autobuild"
           git config user.email "autobuild@users.noreply.github.com"
-      # No-ops (quietly) until ANTHROPIC_API_KEY is set. Guarding here avoids
-      # burning a build step when the key is absent.
+      # No-ops (quietly) until a Claude credential is set. Guarding here avoids
+      # burning a build step when auth is absent.
       - name: Run one tick
-        if: env.ANTHROPIC_API_KEY != '' && env.LINEAR_API_KEY != ''
+        if: (env.ANTHROPIC_API_KEY != '' || env.CLAUDE_CODE_OAUTH_TOKEN != '') && env.LINEAR_API_KEY != ''
         run: python3 scripts/autobuild.py tick

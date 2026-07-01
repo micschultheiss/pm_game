@@ -273,11 +273,13 @@ def tick():
     print(f"tick: {len(to_ship)} to ship, {len(to_build)} to build", flush=True)
 
     results = []
+    had_error = False  # hard/infra errors fail the run; expected gates don't
     # Ship approved cards first (don't make the human wait), then build one.
     for issue in to_ship:
         try:
             results.append(do_ship(issue))
         except Exception as exc:  # noqa: BLE001 — one bad card must not kill the tick
+            had_error = True
             results.append(f"{issue['identifier']}: ERROR {exc}")
             note(issue["identifier"], f"🤖 Autobuild ship errored: {exc}")
     if to_build:
@@ -285,8 +287,16 @@ def tick():
         try:
             results.append(do_build(issue))
         except Exception as exc:  # noqa: BLE001
+            had_error = True
             results.append(f"{issue['identifier']}: ERROR {exc}")
-            note(issue["identifier"], f"🤖 Autobuild build errored: {exc}")
+            # Infra error (bad key, git/fly failure) — put the card back in Todo so
+            # a fixed retry re-triggers it, rather than stranding it In Progress.
+            try:
+                linear_api.set_state(issue["identifier"], BUILD_COLUMN)
+            except linear_api.LinearError:
+                pass
+            note(issue["identifier"], f"🤖 Autobuild build errored (returned to "
+                                      f"{BUILD_COLUMN} for retry): {exc}")
 
     if not results:
         print("board quiet — nothing to do.", flush=True)
@@ -294,7 +304,8 @@ def tick():
         print("tick summary:", flush=True)
         for r in results:
             print(f"  - {r}", flush=True)
-    return 0
+    # Fail the workflow run on hard errors so a broken tick shows red, not green.
+    return 1 if had_error else 0
 
 
 def main(argv=None):
