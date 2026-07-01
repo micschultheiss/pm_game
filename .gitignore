@@ -12,5 +12,3 @@ htmlcov/
 
 # Claude Code — machine-local settings (keep launch.json shareable)
 .claude/settings.local.json
-# Linear board watcher — per-checkout transition snapshot (see scripts/linear_watch.py)
-.claude/linear_watch_state.json
