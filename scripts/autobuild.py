@@ -93,6 +93,34 @@ def commit_subject(issue):
     return f"feat: {title}"
 
 
+# Paths the web app (and therefore staging) exercises. If a diff touches none of
+# these but does touch the terminal frontend, staging can't demonstrate it.
+WEB_SURFACE = ("src/web.py", "src/engine.py", "src/templates/", "src/static/",
+               "requirements.txt")
+
+
+def is_terminal_only(changed_files):
+    """True when the change is terminal-frontend-only — staging won't show it."""
+    touches_terminal = any(f.startswith("src/terminal.py") for f in changed_files)
+    touches_web = any(f.startswith(w) for f in changed_files for w in WEB_SURFACE)
+    return touches_terminal and not touches_web
+
+
+def verify_instructions(terminal_only, branch):
+    """The 'how to verify' line for the In Review comment, per change surface."""
+    if terminal_only:
+        return (
+            "⚠️ **Terminal-only change — staging (the web app) won't show this.** "
+            "Pull the branch and run the terminal locally:\n"
+            f"```bash\ngit fetch origin {branch}\n"
+            f"git checkout {branch}\n"
+            "python3 hallucination_inc.py\n```\n"
+            "When it looks right, move this card to **Deploy** to ship to prod."
+        )
+    return (f"Verify on staging ({STAGING_URL}), then move this card to **Deploy** "
+            "to ship to prod.")
+
+
 # --- the Claude build step ------------------------------------------------
 
 def build_prompt(issue):
@@ -197,8 +225,10 @@ def do_build(issue):
 
     sh(FLY_STAGING)
     staged = health_ok(STAGING_URL)
+    changed = git("diff", "--name-only", "origin/main...HEAD", capture=True).stdout.split()
     diffstat = git("diff", "--stat", "origin/main...HEAD", capture=True).stdout.strip()
     tail = "\n".join(log.strip().splitlines()[-8:])
+    terminal_only = is_terminal_only(changed)
 
     move(ident, GATE_COLUMN)
     note(ident, (
@@ -208,7 +238,7 @@ def do_build(issue):
         f"- Staging: {STAGING_URL} — health check "
         f"{'✅ 200' if staged else '⚠️ did not return 200'}\n\n"
         f"**Changes:**\n```\n{diffstat}\n```\n\n"
-        f"Verify on staging, then move this card to **Deploy** to ship to prod."
+        f"{verify_instructions(terminal_only, branch)}"
     ))
     try:
         linear_api.link(ident, f"{COMMIT_URL}{sha}", commit_subject(issue))

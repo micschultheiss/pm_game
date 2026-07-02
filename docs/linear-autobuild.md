@@ -77,6 +77,10 @@ rather than relying on push-triggered CI.
   with a note.
 - One card is built per tick; extras wait for the next tick. Ships are processed
   first so approvals aren't delayed.
+- **Terminal-only changes** (diff touches `src/terminal.py` but nothing the web
+  app exercises) can't be verified on staging. The In Review comment detects this
+  and instead gives the `git fetch`/`checkout` + `python3 hallucination_inc.py`
+  commands to test locally.
 - Cost: each build tick that has work spins up a full Claude run — mind the
   5-minute cadence if that matters. Widen the cron or gate it if needed.
 - `docs/TODO.md` is a generated mirror (`scripts/sync_todo_from_linear.py`, ADR
