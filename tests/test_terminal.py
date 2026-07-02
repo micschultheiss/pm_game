@@ -646,19 +646,31 @@ class BootSplashTests(unittest.TestCase):
         buf.isatty = lambda: True
         with mock.patch("os.system"), mock.patch("time.sleep"), \
              mock.patch("shutil.get_terminal_size", return_value=os.terminal_size((120, 30))), \
+             mock.patch("builtins.input", return_value="") as mock_input, \
              redirect_stdout(buf):
             g.boot_splash(delay=0)
         out = buf.getvalue()
         self.assertIn("Move fast and break things", out)
+        mock_input.assert_called_once()
 
     def test_boot_splash_keyboard_interrupt_skips_cleanly(self):
         buf = io.StringIO()
         buf.isatty = lambda: True
         with mock.patch("os.system"), mock.patch("time.sleep", side_effect=KeyboardInterrupt), \
+             mock.patch("builtins.input", return_value=""), \
              redirect_stdout(buf):
             g.boot_splash(delay=0)
         out = buf.getvalue()
         self.assertIn("Where AI Meets Enterprise", out)
+
+    def test_boot_splash_non_tty_skips_press_enter_prompt(self):
+        # No stdin interaction should happen when stdout isn't a real
+        # terminal — input() being called here would hang/fail the test.
+        with mock.patch("os.system"), \
+             mock.patch("shutil.get_terminal_size", return_value=os.terminal_size((120, 30))), \
+             mock.patch("builtins.input") as mock_input:
+            _capture(g.boot_splash)
+        mock_input.assert_not_called()
 
 
 class MainTests(unittest.TestCase):

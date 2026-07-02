@@ -147,9 +147,10 @@ def _print_boot_line(label, status, width):
     print(f"  {label} {_DIM}{dots}{_RST} {color}{_BLD}{status}{_RST}")
 
 def boot_splash(delay=0.04):
-    """Play the boot-log + logo-reveal animation, then return (no blocking
-    prompt — the briefing's own "press ENTER to start" follows immediately).
-    Skips all pacing when stdout isn't a real terminal."""
+    """Play the boot-log + logo-reveal animation, then hold on the logo until
+    the player presses ENTER (so it doesn't get wiped by the briefing before
+    anyone sees it). Skips all pacing and the prompt when stdout isn't a real
+    terminal."""
     animate = sys.stdout.isatty()
     width = _term_width()
     try:
@@ -196,6 +197,12 @@ def boot_splash(delay=0.04):
         rule("═")
         print(f"  {_BLD}{_CY}HALLUCINATION INC.{_RST} — Where AI Meets Enterprise")
         rule("═")
+
+    if animate:
+        try:
+            input(f"  {_DIM}[Press ENTER to continue]{_RST}")
+        except (EOFError, KeyboardInterrupt):
+            pass
 
 def header(state):
     clear()
