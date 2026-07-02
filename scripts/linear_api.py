@@ -88,6 +88,23 @@ def board():
     ]
 
 
+def comments(identifier):
+    """Return an issue's comments as [{body, createdAt}], oldest-first-ish.
+
+    Authorship isn't returned: the loop posts via the same LINEAR_API_KEY as the
+    human, so bot vs. human is told apart by body markers, not by author.
+    """
+    query = """
+    query($id: String!) {
+      issue(id: $id) { comments(first: 100) { nodes { body createdAt } } }
+    }
+    """
+    issue = _gql(query, {"id": identifier}).get("issue")
+    if not issue:
+        raise LinearError(f"issue {identifier} not found")
+    return issue["comments"]["nodes"]
+
+
 def _issue_id(identifier):
     """Resolve a human identifier (MIC-12) to its UUID."""
     query = "query($id: String!) { issue(id: $id) { id } }"
@@ -152,11 +169,14 @@ def link(identifier, url, title):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv:
-        sys.exit("usage: linear_api.py {board|state|comment|link} ...")
+        sys.exit("usage: linear_api.py {board|comments|state|comment|link} ...")
     cmd, rest = argv[0], argv[1:]
     try:
         if cmd == "board":
             print(json.dumps(board(), indent=2))
+        elif cmd == "comments":
+            (identifier,) = rest
+            print(json.dumps(comments(identifier), indent=2))
         elif cmd == "state":
             identifier, state_name = rest
             print("ok" if set_state(identifier, state_name) else "failed")

@@ -41,6 +41,12 @@ GATE_COLUMN = "In Review"
 SHIP_COLUMN = "Deploy"
 DONE_COLUMN = "Done"
 
+# A reviewer requests changes on an In Review card with a comment starting "[Fix]".
+# The loop reworks the branch and replies with a comment containing REWORK_MARKER;
+# a [Fix] is "addressed" once a marked reply exists after it (see pending_fix).
+FIX_PREFIX = "[fix]"                 # matched case-insensitively
+REWORK_MARKER = "Autobuild reworked"  # substring present in every rework reply
+
 REPO_SLUG = "micschultheiss/pm_game"
 COMMIT_URL = f"https://github.com/{REPO_SLUG}/commit/"
 STAGING_URL = "https://hallucination-inc-staging.fly.dev/"
@@ -144,12 +150,38 @@ Rules:
 """
 
 
-def run_claude(issue):
-    """Delegate implementation to headless Claude. Edits the working tree only."""
-    cmd = ["claude", "-p", build_prompt(issue),
+def rework_prompt(issue, fix_text):
+    return f"""You are REWORKING an already-built ticket in the Hallucination Inc.
+codebase based on reviewer feedback. The current branch already contains the
+previous implementation — adjust it in place to address the feedback below.
+
+Linear ticket {issue['identifier']}: {issue['title']}
+
+Original description:
+{issue['description'] or '(none)'}
+
+Reviewer feedback to address ([Fix] comment from the In Review gate):
+{fix_text}
+
+Rules:
+- Address the feedback. Follow CLAUDE.md (engine logic in src/engine.py first,
+  stdlib only; frontends wire their own UI; keep the meme-y tone; respect the
+  load-bearing mechanics).
+- The test suite MUST pass: `python3 tests/run_tests.py`. Update tests as needed.
+- Do NOT run git, flyctl, or touch Linear. Do NOT commit or push. ONLY edit the
+  working tree. The surrounding automation handles commit, deploy, and Linear.
+- End your final message with a one-line summary of exactly what you changed.
+"""
+
+
+def run_claude(prompt, capture=False):
+    """Delegate to headless Claude. Edits the working tree only. Returns Claude's
+    final text when capture=True (used to summarise a rework), else ""."""
+    cmd = ["claude", "-p", prompt,
            "--dangerously-skip-permissions", "--max-turns", "80"]
-    # ANTHROPIC_API_KEY is inherited from the environment (CI secret).
-    sh(cmd)
+    # ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN inherited from env (CI secret).
+    res = sh(cmd, capture=capture)
+    return (res.stdout or "") if capture else ""
 
 
 # --- Linear helpers (never fatal — a note failure shouldn't abort a tick) --
@@ -201,7 +233,7 @@ def do_build(issue):
     git("branch", "-D", branch, check=False)
     git("checkout", "-b", branch)
 
-    run_claude(issue)
+    run_claude(build_prompt(issue))
 
     if not git("status", "--porcelain", capture=True).stdout.strip():
         note(ident, f"🤖 Autobuild ran on {ident} but Claude produced no changes. "
@@ -296,6 +328,82 @@ def do_ship(issue):
     return f"{ident}: shipped → Done ({'prod ok' if prod_ok else 'prod WARN'})"
 
 
+def pending_fix(comment_list):
+    """Return the text of an unaddressed [Fix] comment on an In Review card, else None.
+
+    A [Fix] is unaddressed when no rework reply (containing REWORK_MARKER) exists
+    at/after it. Comparing the latest [Fix] against the latest reply means a fresh
+    [Fix] after a prior rework re-triggers, but a reworked one won't loop.
+    """
+    ordered = sorted(comment_list, key=lambda c: c.get("createdAt") or "")
+    last_fix = last_reply = None
+    for c in ordered:
+        body = (c.get("body") or "").strip()
+        if body.lower().startswith(FIX_PREFIX):
+            last_fix = c
+        if REWORK_MARKER in body:
+            last_reply = c
+    if not last_fix:
+        return None
+    if last_reply and (last_reply.get("createdAt") or "") >= (last_fix.get("createdAt") or ""):
+        return None  # already reworked after the latest [Fix]
+    return last_fix["body"].strip()[len(FIX_PREFIX):].strip() or "(no detail given)"
+
+
+def do_rework(issue, fix_text):
+    """Rework an In Review card's branch to address a [Fix] comment, redeploy
+    staging, and leave it In Review with a reply describing what changed."""
+    ident = issue["identifier"]
+    branch = branch_for(issue)
+    print(f"== REWORK {ident}: {fix_text[:70]} ==", flush=True)
+
+    git("fetch", "origin", branch)
+    git("checkout", "-B", branch, f"origin/{branch}")
+    git("reset", "--hard", f"origin/{branch}")
+
+    summary = run_claude(rework_prompt(issue, fix_text), capture=True).strip()
+
+    if not git("status", "--porcelain", capture=True).stdout.strip():
+        note(ident, f"🤖 **Autobuild reworked** {ident}: the [Fix] produced no code "
+                    f"changes — left In Review.\n\n> {fix_text}")
+        git("checkout", "-f", "main", check=False)
+        return f"{ident}: rework no-op"
+
+    ok, log = tests_pass()
+    if not ok:
+        tail = "\n".join(log.strip().splitlines()[-20:])
+        note(ident, f"🤖 **Autobuild reworked** {ident} but tests **failed** — nothing "
+                    f"committed, left In Review.\n\n> {fix_text}\n\n```\n{tail}\n```")
+        git("checkout", "-f", "main", check=False)  # discard broken edits
+        return f"{ident}: rework tests failed"
+
+    git("add", "-A")
+    git("commit", "-m", f"fix: rework {ident} per review feedback",
+        "-m", f"Addressed [Fix]: {fix_text}", "-m", COAUTHOR_TRAILER)
+    sha = head_sha()
+    git("push", "--force-with-lease", "-u", "origin", branch)
+
+    sh(FLY_STAGING)
+    staged = health_ok(STAGING_URL)
+    changed = git("diff", "--name-only", "origin/main...HEAD", capture=True).stdout.split()
+    diffstat = git("diff", "--stat", "origin/main...HEAD", capture=True).stdout.strip()
+    what = "\n".join(summary.splitlines()[-6:]) if summary else "(no summary)"
+
+    move(ident, GATE_COLUMN)  # stays In Review (idempotent)
+    note(ident, (
+        f"🤖 **Autobuild reworked** {ident} → still **In Review**. Addressed the "
+        f"[Fix] on `{branch}`.\n\n"
+        f"> {fix_text}\n\n"
+        f"**New commit:** {COMMIT_URL}{sha}\n\n"
+        f"**What changed:**\n{what}\n\n"
+        f"**Files:**\n```\n{diffstat}\n```\n"
+        f"- Staging redeployed: {STAGING_URL} — health check "
+        f"{'✅ 200' if staged else '⚠️ did not return 200'}\n\n"
+        f"{verify_instructions(is_terminal_only(changed), branch)}"
+    ))
+    return f"{ident}: reworked (staging {'ok' if staged else 'WARN'})"
+
+
 def sync_todo():
     """Regenerate docs/TODO.md from Linear; commit to main only if it drifted.
 
@@ -318,15 +426,30 @@ def sync_todo():
     return "TODO.md synced"
 
 
+def find_rework(in_review):
+    """First (issue, fix_text) among In Review cards with an unaddressed [Fix]."""
+    for issue in in_review:
+        try:
+            fix = pending_fix(linear_api.comments(issue["identifier"]))
+        except linear_api.LinearError as exc:
+            print(f"!! could not read comments for {issue['identifier']}: {exc}", flush=True)
+            continue
+        if fix:
+            return issue, fix
+    return None, None
+
+
 def tick():
     issues = linear_api.board()
     to_build = [i for i in issues if i.get("state") == BUILD_COLUMN]
     to_ship = [i for i in issues if i.get("state") == SHIP_COLUMN]
-    print(f"tick: {len(to_ship)} to ship, {len(to_build)} to build", flush=True)
+    in_review = [i for i in issues if i.get("state") == GATE_COLUMN]
+    print(f"tick: {len(to_ship)} to ship, {len(in_review)} in review, "
+          f"{len(to_build)} to build", flush=True)
 
     results = []
     had_error = False  # hard/infra errors fail the run; expected gates don't
-    # Ship approved cards first (don't make the human wait), then build one.
+    # Ship approved cards first (don't make the human wait).
     for issue in to_ship:
         try:
             results.append(do_ship(issue))
@@ -334,7 +457,19 @@ def tick():
             had_error = True
             results.append(f"{issue['identifier']}: ERROR {exc}")
             note(issue["identifier"], f"🤖 Autobuild ship errored: {exc}")
-    if to_build:
+
+    # Then EITHER rework one In Review card with a pending [Fix], OR build one Todo
+    # — at most one Claude-heavy op per tick. Rework wins: finish in-flight work
+    # before starting new work.
+    rework_issue, fix_text = find_rework(in_review)
+    if rework_issue:
+        try:
+            results.append(do_rework(rework_issue, fix_text))
+        except Exception as exc:  # noqa: BLE001
+            had_error = True
+            results.append(f"{rework_issue['identifier']}: ERROR {exc}")
+            note(rework_issue["identifier"], f"🤖 Autobuild rework errored: {exc}")
+    elif to_build:
         issue = to_build[0]  # one build per tick; the rest wait for the next
         try:
             results.append(do_build(issue))

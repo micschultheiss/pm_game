@@ -19,6 +19,12 @@ Todo ──build──▶ In Progress ──test + commit + deploy-staging──
 - **In Review is the human gate.** The tick stops there and comments the commit,
   the staging URL, tests, and a diffstat. You test on
   `https://hallucination-inc-staging.fly.dev/`.
+- **Request changes with a `[Fix]` comment.** Leave a comment on an In Review card
+  starting with `[Fix]` (e.g. `[Fix] make the boot log shorter`) and the next tick
+  reworks that card's branch to address it, redeploys staging, leaves it **In
+  Review**, and replies with what changed. Leave another `[Fix]` to iterate; move
+  it to **Deploy** when you're happy. Each `[Fix]` is acted on once — the reply
+  marks it addressed, so it won't loop.
 - **Deploy = ship.** Moving a card into the Deploy column is your approval: the
   next tick merges the branch to `main`, deploys staging→prod, and moves the card
   to **Done** with a proof-of-work comment.
