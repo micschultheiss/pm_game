@@ -13,6 +13,8 @@ Entry point: ``python3 hallucination_inc.py`` dispatches here via
 
 import os
 import shutil
+import sys
+import time
 
 from engine import (
     ACTIVE_CLIENT_COUNT,
@@ -72,6 +74,128 @@ def pause(label="Press ENTER to continue..."):
         input(f"\n  {label}")
     except (EOFError, KeyboardInterrupt):
         pass
+
+# ─────────────────────────────────────────────
+# BOOT SPLASH
+# ─────────────────────────────────────────────
+# ASCII port of the web frontend's boot-sequence title splash (see
+# src/static/hallu-engine.js — same 5×7 glyph set, same boot-log copy).
+# Animated on a real terminal; renders instantly everywhere else (pipes,
+# CI, the test suite) so it never blocks automation. Ctrl-C skips straight
+# to the briefing.
+
+_GLYPHS = {
+    "A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    "C": [".####", "#....", "#....", "#....", "#....", "#....", ".####"],
+    "H": ["#...#", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    "I": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "#####"],
+    "L": ["#....", "#....", "#....", "#....", "#....", "#....", "#####"],
+    "N": ["#...#", "##..#", "#.#.#", "#.#.#", "#.#.#", "#..##", "#...#"],
+    "O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    "T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
+    "U": ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    ".": [".....", ".....", ".....", ".....", ".....", ".##..", ".##.."],
+}
+_GLYPH_ROWS = 7
+
+_DIM = "\033[2m"
+_RED = "\033[91m"
+
+_BOOT_LOG = [
+    ("HALLUCINATION INC. BIOS v0.30.0-hallucinated", "OK"),
+    ("allocating $100,000 to volatile wallet", "OK"),
+    ("servicing $100,000 debt @ 3.00%/day", "OK"),
+    ("reticulating embeddings", "OK"),
+    ("calibrating reality-distortion field", "OK"),
+    ("scraping the open internet (again)", "OK"),
+    ("clearing procurement compliance", "SKIPPED"),
+    ("spinning up 13 model wrappers", "OK"),
+    ("booting confidence module", "1100%"),
+]
+
+def _glyph_rows(text):
+    """Render text as _GLYPH_ROWS strings of '#'/'.' block-letter pixels."""
+    rows = [""] * _GLYPH_ROWS
+    chars = list(text.upper())
+    for i, ch in enumerate(chars):
+        glyph = _GLYPHS.get(ch, _GLYPHS["."])
+        for r in range(_GLYPH_ROWS):
+            rows[r] += glyph[r]
+        if i < len(chars) - 1:
+            for r in range(_GLYPH_ROWS):
+                rows[r] += "."
+    return rows
+
+def _render_rows(rows, fill="█", empty=" ", cols=None):
+    """Rows of '#'/'.' pixels to printable strings; `cols` sweeps the reveal."""
+    out = []
+    for row in rows:
+        n = len(row) if cols is None else max(0, min(cols, len(row)))
+        out.append(row[:n].replace("#", fill).replace(".", empty))
+    return out
+
+def _boot_status_color(status):
+    if status == "SKIPPED":
+        return _RED
+    if status.endswith("%"):
+        return _DIM
+    return _CY
+
+def _print_boot_line(label, status, width):
+    dots = "." * max(2, width - len(label) - len(status) - 4)
+    color = _boot_status_color(status)
+    print(f"  {label} {_DIM}{dots}{_RST} {color}{_BLD}{status}{_RST}")
+
+def boot_splash(delay=0.04):
+    """Play the boot-log + logo-reveal animation, then return (no blocking
+    prompt — the briefing's own "press ENTER to start" follows immediately).
+    Skips all pacing when stdout isn't a real terminal."""
+    animate = sys.stdout.isatty()
+    width = _term_width()
+    try:
+        clear()
+        rule("═")
+        for label, status in _BOOT_LOG:
+            _print_boot_line(label, status, width)
+            if animate:
+                time.sleep(delay)
+        if animate:
+            time.sleep(delay * 4)
+
+        word_rows = _glyph_rows("HALLUCINATION")
+        inc_rows = _glyph_rows("INC.")
+        logo_width = len(word_rows[0])
+
+        if logo_width + 2 <= width:
+            if animate:
+                cols = 0
+                step = max(2, logo_width // 16)
+                while cols < logo_width:
+                    cols = min(logo_width, cols + step)
+                    clear()
+                    rule("═")
+                    for line in _render_rows(word_rows, cols=cols):
+                        print(f"  {_BLD}{_CY}{line}{_RST}")
+                    time.sleep(delay / 2)
+            clear()
+            rule("═")
+            for line in _render_rows(word_rows):
+                print(f"  {_BLD}{_CY}{line}{_RST}")
+            pad = " " * max(0, logo_width - len(inc_rows[0]))
+            for line in _render_rows(inc_rows):
+                print(f"  {pad}{_BLD}{_CY}{line}{_RST}")
+        else:
+            clear()
+            rule("═")
+            print(f"\n  {_BLD}{_CY}HALLUCINATION INC.{_RST}")
+
+        print(f"\n  {_DIM}Move fast and break things{_RST}")
+        rule("═")
+    except KeyboardInterrupt:
+        clear()
+        rule("═")
+        print(f"  {_BLD}{_CY}HALLUCINATION INC.{_RST} — Where AI Meets Enterprise")
+        rule("═")
 
 def header(state):
     clear()
@@ -600,6 +724,7 @@ def game_loop(state):
 
 
 def main():
+    boot_splash()
     clear()
     rule("═")
     print(f"  {_BLD}HALLUCINATION INC.{_RST} — Where AI Meets Enterprise")
