@@ -79,5 +79,7 @@ rather than relying on push-triggered CI.
   first so approvals aren't delayed.
 - Cost: each build tick that has work spins up a full Claude run — mind the
   5-minute cadence if that matters. Widen the cron or gate it if needed.
-- `docs/TODO.md` is generated from Linear and includes a **Deploy** section
-  (`scripts/sync_todo_from_linear.py`).
+- `docs/TODO.md` is a generated mirror (`scripts/sync_todo_from_linear.py`, ADR
+  007). Every tick regenerates it on a clean `main` and commits **only if it
+  drifted**, so board changes (manual or loop-driven) show up within one interval
+  — no hand-run sync needed. Docs-only commit; prod is untouched.

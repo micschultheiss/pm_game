@@ -266,6 +266,28 @@ def do_ship(issue):
     return f"{ident}: shipped → Done ({'prod ok' if prod_ok else 'prod WARN'})"
 
 
+def sync_todo():
+    """Regenerate docs/TODO.md from Linear; commit to main only if it drifted.
+
+    TODO.md is a generated mirror (ADR 007) — the loop keeps it live so board
+    changes (manual or loop-driven) show up without a hand-run sync. Runs on a
+    clean main so the commit never lands on a build branch. Docs-only: a
+    GITHUB_TOKEN push doesn't re-trigger ci.yml and TODO.md doesn't affect the
+    app, so prod is untouched. Returns a summary string only when it committed.
+    """
+    git("fetch", "origin", "main")
+    git("checkout", "-f", "main")            # -f: discard any build-branch leftovers
+    git("reset", "--hard", "origin/main")
+    sh(["python3", "scripts/sync_todo_from_linear.py"])
+    if not git("status", "--porcelain", "docs/TODO.md", capture=True).stdout.strip():
+        return None                          # already in sync — stay quiet
+    git("add", "docs/TODO.md")
+    git("commit", "-m", "docs: sync TODO.md from Linear (autobuild)",
+        "-m", COAUTHOR_TRAILER)
+    git("push", "origin", "main")
+    return "TODO.md synced"
+
+
 def tick():
     issues = linear_api.board()
     to_build = [i for i in issues if i.get("state") == BUILD_COLUMN]
@@ -297,6 +319,14 @@ def tick():
                 pass
             note(issue["identifier"], f"🤖 Autobuild build errored (returned to "
                                       f"{BUILD_COLUMN} for retry): {exc}")
+
+    # Keep the generated TODO.md mirror in step with the board every tick.
+    try:
+        synced = sync_todo()
+        if synced:
+            results.append(synced)
+    except Exception as exc:  # noqa: BLE001 — a docs sync must never fail the tick
+        print(f"!! TODO.md sync failed: {exc}", flush=True)
 
     if not results:
         print("board quiet — nothing to do.", flush=True)
