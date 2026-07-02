@@ -328,26 +328,36 @@ def do_ship(issue):
     return f"{ident}: shipped → Done ({'prod ok' if prod_ok else 'prod WARN'})"
 
 
+def _unescape_md(body):
+    """Undo Linear's markdown escaping of brackets (`\\[Fix\\]` → `[Fix]`)."""
+    return body.replace("\\[", "[").replace("\\]", "]")
+
+
 def pending_fix(comment_list):
     """Return the text of an unaddressed [Fix] comment on an In Review card, else None.
 
     A [Fix] is unaddressed when no rework reply (containing REWORK_MARKER) exists
     at/after it. Comparing the latest [Fix] against the latest reply means a fresh
     [Fix] after a prior rework re-triggers, but a reworked one won't loop.
+
+    Linear stores `[Fix]` as `\\[Fix\\]` (it escapes brackets as markdown link
+    syntax), so bodies are un-escaped before matching.
     """
     ordered = sorted(comment_list, key=lambda c: c.get("createdAt") or "")
-    last_fix = last_reply = None
+    last_fix_text = last_fix_ts = last_reply_ts = None
     for c in ordered:
-        body = (c.get("body") or "").strip()
+        body = _unescape_md((c.get("body") or "").strip())
+        ts = c.get("createdAt") or ""
         if body.lower().startswith(FIX_PREFIX):
-            last_fix = c
+            last_fix_text = body[len(FIX_PREFIX):].strip() or "(no detail given)"
+            last_fix_ts = ts
         if REWORK_MARKER in body:
-            last_reply = c
-    if not last_fix:
+            last_reply_ts = ts
+    if last_fix_ts is None:
         return None
-    if last_reply and (last_reply.get("createdAt") or "") >= (last_fix.get("createdAt") or ""):
+    if last_reply_ts is not None and last_reply_ts >= last_fix_ts:
         return None  # already reworked after the latest [Fix]
-    return last_fix["body"].strip()[len(FIX_PREFIX):].strip() or "(no detail given)"
+    return last_fix_text
 
 
 def do_rework(issue, fix_text):
