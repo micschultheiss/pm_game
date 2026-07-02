@@ -606,6 +606,73 @@ class GameLoopTests(unittest.TestCase):
             _silent(g.game_loop, s)
 
 
+class BootSplashTests(unittest.TestCase):
+    def test_boot_status_color_branches(self):
+        self.assertEqual(g._boot_status_color("SKIPPED"), g._RED)
+        self.assertEqual(g._boot_status_color("1100%"), g._DIM)
+        self.assertEqual(g._boot_status_color("OK"), g._CY)
+
+    def test_glyph_rows_unknown_char_falls_back_to_dot_glyph(self):
+        rows = g._glyph_rows("H?")
+        self.assertEqual(len(rows), g._GLYPH_ROWS)
+        self.assertEqual(rows, g._glyph_rows("H."))
+
+    def test_render_rows_reveal_sweeps_columns(self):
+        rows = g._glyph_rows("HI")
+        full = g._render_rows(rows)
+        partial = g._render_rows(rows, cols=1)
+        self.assertEqual(len(partial[0]), 1)
+        self.assertGreater(len(full[0]), len(partial[0]))
+
+    def test_boot_splash_non_tty_is_instant_and_prints_full_sequence(self):
+        # Default test stdout (StringIO) is not a tty, so no sleeps/animation
+        # frames run — this exercises the wide-terminal logo-reveal branch.
+        with mock.patch("os.system"), \
+             mock.patch("shutil.get_terminal_size", return_value=os.terminal_size((120, 30))):
+            _, out = _capture(g.boot_splash)
+        for label, status in g._BOOT_LOG:
+            self.assertIn(label, out)
+            self.assertIn(status, out)
+        self.assertIn("Move fast and break things", out)
+
+    def test_boot_splash_narrow_terminal_falls_back_to_plain_logo(self):
+        with mock.patch("os.system"), \
+             mock.patch("shutil.get_terminal_size", return_value=os.terminal_size((64, 20))):
+            _, out = _capture(g.boot_splash)
+        self.assertIn("HALLUCINATION INC.", out)
+
+    def test_boot_splash_animated_plays_sweep_frames(self):
+        buf = io.StringIO()
+        buf.isatty = lambda: True
+        with mock.patch("os.system"), mock.patch("time.sleep"), \
+             mock.patch("shutil.get_terminal_size", return_value=os.terminal_size((120, 30))), \
+             mock.patch("builtins.input", return_value="") as mock_input, \
+             redirect_stdout(buf):
+            g.boot_splash(delay=0)
+        out = buf.getvalue()
+        self.assertIn("Move fast and break things", out)
+        mock_input.assert_called_once()
+
+    def test_boot_splash_keyboard_interrupt_skips_cleanly(self):
+        buf = io.StringIO()
+        buf.isatty = lambda: True
+        with mock.patch("os.system"), mock.patch("time.sleep", side_effect=KeyboardInterrupt), \
+             mock.patch("builtins.input", return_value=""), \
+             redirect_stdout(buf):
+            g.boot_splash(delay=0)
+        out = buf.getvalue()
+        self.assertIn("Where AI Meets Enterprise", out)
+
+    def test_boot_splash_non_tty_skips_press_enter_prompt(self):
+        # No stdin interaction should happen when stdout isn't a real
+        # terminal — input() being called here would hang/fail the test.
+        with mock.patch("os.system"), \
+             mock.patch("shutil.get_terminal_size", return_value=os.terminal_size((120, 30))), \
+             mock.patch("builtins.input") as mock_input:
+            _capture(g.boot_splash)
+        mock_input.assert_not_called()
+
+
 class MainTests(unittest.TestCase):
     def test_main_runs_with_immediate_quit(self):
         with mock.patch("os.system"), \
