@@ -33,7 +33,7 @@ _(none)_
 
 ## In Review
 
-- [~] Add a title/boot splash to the terminal version ([MIC-9](https://linear.app/mics-playground/issue/MIC-9/add-a-titleboot-splash-to-the-terminal-version))
+_(none)_
 
 ## Deploy
 
@@ -42,4 +42,5 @@ _(none)_
 ## Done
 
 - [x] Add more keyboard shortcuts in the browser (action hotkeys) ([MIC-7](https://linear.app/mics-playground/issue/MIC-7/add-more-keyboard-shortcuts-in-the-browser-action-hotkeys))
+- [x] Add a title/boot splash to the terminal version ([MIC-9](https://linear.app/mics-playground/issue/MIC-9/add-a-titleboot-splash-to-the-terminal-version))
 - [x] Change the Slogan on the splash screen ([MIC-20](https://linear.app/mics-playground/issue/MIC-20/change-the-slogan-on-the-splash-screen))
