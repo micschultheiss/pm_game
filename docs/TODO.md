@@ -8,7 +8,6 @@
 - [ ] Rework mobile web screens ([MIC-5](https://linear.app/mics-playground/issue/MIC-5/rework-mobile-web-screens))
 - [ ] Tweak desktop web version (game-screen polish) ([MIC-6](https://linear.app/mics-playground/issue/MIC-6/tweak-desktop-web-version-game-screen-polish))
 - [ ] Add mobile/tap support ([MIC-8](https://linear.app/mics-playground/issue/MIC-8/add-mobiletap-support))
-- [ ] Add a title/boot splash to the terminal version ([MIC-9](https://linear.app/mics-playground/issue/MIC-9/add-a-titleboot-splash-to-the-terminal-version))
 - [ ] Rework the $100k debt-free bonus ([MIC-10](https://linear.app/mics-playground/issue/MIC-10/rework-the-dollar100k-debt-free-bonus))
 - [ ] Add 1–2 new event categories ([MIC-11](https://linear.app/mics-playground/issue/MIC-11/add-1-2-new-event-categories))
 - [ ] Surface why a productive move is unavailable when bankruptcy fires ([MIC-12](https://linear.app/mics-playground/issue/MIC-12/surface-why-a-productive-move-is-unavailable-when-bankruptcy-fires))
@@ -34,7 +33,7 @@ _(none)_
 
 ## In Review
 
-_(none)_
+- [~] Add a title/boot splash to the terminal version ([MIC-9](https://linear.app/mics-playground/issue/MIC-9/add-a-titleboot-splash-to-the-terminal-version))
 
 ## Deploy
 
@@ -43,3 +42,4 @@ _(none)_
 ## Done
 
 - [x] Add more keyboard shortcuts in the browser (action hotkeys) ([MIC-7](https://linear.app/mics-playground/issue/MIC-7/add-more-keyboard-shortcuts-in-the-browser-action-hotkeys))
+- [x] Change the Slogan on the splash screen ([MIC-20](https://linear.app/mics-playground/issue/MIC-20/change-the-slogan-on-the-splash-screen))
